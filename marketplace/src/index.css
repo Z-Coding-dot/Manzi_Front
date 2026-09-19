@@ -1,0 +1,127 @@
+@import 'tailwindcss';
+
+/* Self-hosted fonts: low-bandwidth-first — no external font CDN at runtime. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/vazirmatn/400.css';
+@import '@fontsource/vazirmatn/500.css';
+@import '@fontsource/vazirmatn/600.css';
+@import '@fontsource/vazirmatn/700.css';
+@import '@fontsource/fraunces/500.css';
+@import '@fontsource/fraunces/600-italic.css';
+@import '@fontsource/fraunces/600.css';
+
+/* ---------------------------------------------------------------------- */
+/* Design tokens — distinct from the Provider (ops) app: warmer, more     */
+/* visual, marketing-forward. Serif display type is used sparingly (hero  */
+/* headlines only) against the brand green, not a cream background, to   */
+/* avoid the generic "cream + serif" template look.                      */
+/* ---------------------------------------------------------------------- */
+
+@theme {
+  /* Brand */
+  --color-forest: #0d5a48;
+  --color-forest-deep: #083d31;
+  --color-forest-soft: #e5f0ec;
+
+  /* Neutrals */
+  --color-title: #ffff;
+  --color-ink: #12211c;
+  --color-body: #47554d;
+  --color-muted: #7c8880;
+  --color-paper: #f6f7f5;
+  --color-surface: #ffffff;
+  --color-line: #e2e5e0;
+
+  /* Accent — warm amber for ratings/badges */
+  --color-sand: #c98a2c;
+  --color-sand-soft: #fbf1e1;
+
+  /* Semantic */
+  --color-danger: #b3261e;
+  --color-danger-soft: #fcebea;
+  --color-info: #2c6e8c;
+  --color-info-soft: #e8f2f6;
+
+  --font-sans: 'Inter', 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
+  --font-dari: 'Vazirmatn', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces', 'Vazirmatn', ui-serif, Georgia, serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+html {
+  color-scheme: light;
+}
+
+html[lang='fa-AF'],
+html[lang='ps-AF'] {
+  font-family: var(--font-dari);
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1 {
+  color: var(--color-title);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+
+}
+h2, h3, h4 {
+  color: var(--color-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+html[lang='fa-AF'] .font-display,
+html[lang='ps-AF'] .font-display {
+  font-family: var(--font-dari);
+}
+
+p { margin: 0; }
+
+* {
+  border-color: var(--color-line);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 4px; }
