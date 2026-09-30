@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 interface AuthLayoutProps {
   children: ReactNode
-}
+} 
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   const { t } = useTranslation()

@@ -1,28 +1,29 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
-import NotFound from '@/pages/NotFound'
-import Login from '@/pages/auth/Login'
-import Register from '@/pages/auth/Register'
-import AccountDashboard from '@/pages/account/AccountDashboard'
-import AccountProfile from '@/pages/account/AccountProfile'
-import AccountReservations from '@/pages/account/AccountReservations'
-import AccountSaved from '@/pages/account/AccountSaved'
-import AccountSettings from '@/pages/account/AccountSettings'
-import AreaPage from '@/pages/marketplace/AreaPage'
-import BookingFlow from '@/pages/marketplace/BookingFlow'
-import Home from '@/pages/marketplace/Home'
-import MapView from '@/pages/marketplace/MapView'
-import PropertyDetails from '@/pages/marketplace/PropertyDetails'
-import Search from '@/pages/marketplace/Search'
-import Stays from '@/pages/marketplace/Stays'
-import About from '@/pages/marketplace/static/About'
-import CancellationPolicy from '@/pages/marketplace/static/CancellationPolicy'
-import Contact from '@/pages/marketplace/static/Contact'
-import ForPropertyOwners from '@/pages/marketplace/static/ForPropertyOwners'
-import Help from '@/pages/marketplace/static/Help'
-import Privacy from '@/pages/marketplace/static/Privacy'
-import Terms from '@/pages/marketplace/static/Terms'
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import NotFound from "@/pages/NotFound";
+import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
+import AccountDashboard from "@/pages/account/AccountDashboard";
+import AccountProfile from "@/pages/account/AccountProfile";
+import AccountReservations from "@/pages/account/AccountReservations";
+import AccountSaved from "@/pages/account/AccountSaved";
+import AccountSettings from "@/pages/account/AccountSettings";
+import AreaPage from "@/pages/marketplace/AreaPage";
+import BookingFlow from "@/pages/marketplace/BookingFlow";
+import Home from "@/pages/marketplace/Home";
+import MapView from "@/pages/marketplace/MapView";
+import PropertyDetails from "@/pages/marketplace/PropertyDetails";
+import Search from "@/pages/marketplace/Search";
+import Stays from "@/pages/marketplace/Stays";
+import About from "@/pages/marketplace/static/About";
+import CancellationPolicy from "@/pages/marketplace/static/CancellationPolicy";
+import Contact from "@/pages/marketplace/static/Contact";
+import ForPropertyOwners from "@/pages/marketplace/static/ForPropertyOwners";
+import ProviderOnboardingInfo from "@/pages/marketplace/static/ProviderOnboardingInfo";
+import Help from "@/pages/marketplace/static/Help";
+import Privacy from "@/pages/marketplace/static/Privacy";
+import Terms from "@/pages/marketplace/static/Terms";
 
 export default function App() {
   return (
@@ -87,9 +88,13 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/cancellation-policy" element={<CancellationPolicy />} />
         <Route path="/for-property-owners" element={<ForPropertyOwners />} />
+        <Route
+          path="/provider-onboarding-info"
+          element={<ProviderOnboardingInfo />}
+        />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }

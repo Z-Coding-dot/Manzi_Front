@@ -1,0 +1,594 @@
+// Manzil — Prisma schema
+// Modeled directly from the spec's `database_entities`, `roles_and_permissions`,
+// and `localization` sections. Enums are named explicitly (not raw strings) so
+// invalid values are rejected at the database level, not just in application code.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  customer
+  property_owner
+  property_manager
+  receptionist
+  property_staff
+  verification_agent
+  support_agent
+  finance_agent
+  content_manager
+  admin
+  super_admin
+}
+
+enum UserStatus {
+  active
+  suspended
+  pending_verification
+}
+
+enum Language {
+  en
+  fa_AF
+  ps_AF
+}
+
+enum Currency {
+  AFN
+  USD
+}
+
+enum AccommodationType {
+  hotel
+  hostel
+  dormitory
+  guesthouse
+  room
+  apartment
+}
+
+enum VerificationStatus {
+  draft
+  submitted
+  under_review
+  changes_requested
+  approved
+  rejected
+  suspended
+}
+
+enum PropertyStaffRole {
+  property_manager
+  receptionist
+  property_staff
+}
+
+enum StaffStatus {
+  active
+  suspended
+}
+
+enum RoomStatus {
+  available
+  occupied
+  reserved
+  dirty
+  cleaning
+  maintenance
+  out_of_service
+}
+
+enum BedGender {
+  male
+  female
+  any
+}
+
+enum BedStatus {
+  available
+  occupied
+  reserved
+  maintenance
+}
+
+enum ReservationStatus {
+  draft
+  pending
+  payment_pending
+  confirmed
+  checked_in
+  checked_out
+  cancelled
+  expired
+  no_show
+  refunded
+  failed
+}
+
+enum ReservationSource {
+  walk_in
+  phone
+  marketplace
+}
+
+enum GuestIdType {
+  tazkira
+  passport
+  other
+}
+
+enum PaymentMethod {
+  cash
+  hesabpay
+  afpay
+}
+
+enum PaymentStatus {
+  pending
+  authorized
+  paid
+  failed
+  refunded
+  partially_refunded
+}
+
+enum PayoutStatus {
+  pending
+  processing
+  paid
+  failed
+}
+
+enum ReviewStatus {
+  pending
+  published
+  hidden
+  flagged
+}
+
+enum DocumentStatus {
+  pending
+  approved
+  rejected
+}
+
+enum TicketCategory {
+  reservation_issue
+  payment_issue
+  refund_issue
+  property_issue
+  guest_issue
+  fraud_report
+  other
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+}
+
+enum TicketStatus {
+  open
+  investigating
+  waiting
+  resolved
+  closed
+}
+
+enum SyncOperationType {
+  create
+  update
+  delete
+}
+
+enum SyncStatus {
+  pending
+  syncing
+  synced
+  failed
+  conflict
+}
+
+// ---------------------------------------------------------------------------
+// Users & auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String?    @unique
+  phone        String?    @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole
+  language     Language   @default(en)
+  currency     Currency   @default(AFN)
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  ownedProperties  Property[]      @relation("PropertyOwner")
+  staffMemberships PropertyStaff[]
+  reservations     Reservation[]   @relation("CustomerReservations")
+  reviews          Review[]
+  guestProfile     Guest?
+  notifications    Notification[]
+  supportTickets   SupportTicket[]
+  auditLogs        AuditLog[]
+  refreshTokens    RefreshToken[]
+  reviewedDocuments PropertyDocument[] @relation("DocumentReviewer")
+
+  @@index([role])
+  @@map("users")
+}
+
+// One row per issued refresh token so tokens can be individually revoked
+// (device/session management + rotation, per the spec's security section).
+model RefreshToken {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique @map("token_hash")
+  deviceLabel   String?   @map("device_label")
+  ipAddress     String?   @map("ip_address")
+  expiresAt     DateTime  @map("expires_at")
+  revokedAt     DateTime? @map("revoked_at")
+  replacedById  String?   @map("replaced_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Properties
+// ---------------------------------------------------------------------------
+
+model Property {
+  id                 String              @id @default(uuid())
+  ownerId            String              @map("owner_id")
+  owner              User                @relation("PropertyOwner", fields: [ownerId], references: [id])
+  name               String
+  slug               String              @unique
+  type               AccommodationType
+  description        String?
+  address             String
+  district           String
+  latitude           Float
+  longitude          Float
+  phone              String?
+  email              String?
+  checkInTime        String?             @map("check_in_time")
+  checkOutTime       String?             @map("check_out_time")
+  languagesSpoken    Language[]          @map("languages_spoken")
+  paymentMethods     PaymentMethod[]     @map("payment_methods")
+  policies           String?
+  verificationStatus VerificationStatus  @default(draft) @map("verification_status")
+  published          Boolean             @default(false)
+  rating             Float               @default(0)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  staff       PropertyStaff[]
+  rooms       Room[]
+  amenities   PropertyAmenity[]
+  reservations Reservation[]
+  payments    Payment[]
+  payouts     Payout[]
+  reviews     Review[]
+  documents   PropertyDocument[]
+
+  @@index([type])
+  @@index([district])
+  @@index([verificationStatus])
+  @@map("properties")
+}
+
+model PropertyStaff {
+  id         String            @id @default(uuid())
+  propertyId String            @map("property_id")
+  property   Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String            @map("user_id")
+  user       User              @relation(fields: [userId], references: [id])
+  role       PropertyStaffRole
+  status     StaffStatus       @default(active)
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  @@unique([propertyId, userId])
+  @@map("property_staff")
+}
+
+model PropertyDocument {
+  id           String         @id @default(uuid())
+  propertyId   String         @map("property_id")
+  property     Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  documentType String         @map("document_type")
+  file         String
+  status       DocumentStatus @default(pending)
+  reviewedById String?        @map("reviewed_by_id")
+  reviewedBy   User?          @relation("DocumentReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?      @map("reviewed_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  @@map("property_documents")
+}
+
+// ---------------------------------------------------------------------------
+// Inventory: rooms, beds, amenities
+// ---------------------------------------------------------------------------
+
+model Room {
+  id         String     @id @default(uuid())
+  propertyId String     @map("property_id")
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomNumber String     @map("room_number")
+  roomType   String     @map("room_type")
+  capacity   Int
+  status     RoomStatus @default(available)
+  basePrice  Int        @map("base_price") // smallest currency unit (AFN has no subunit in practice; stored as whole AFN)
+
+  beds         Bed[]
+  amenities    RoomAmenity[]
+  reservations Reservation[]
+
+  @@unique([propertyId, roomNumber])
+  @@index([propertyId, status])
+  @@map("rooms")
+}
+
+model Bed {
+  id        String    @id @default(uuid())
+  roomId    String    @map("room_id")
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bedNumber String    @map("bed_number")
+  gender    BedGender @default(any)
+  status    BedStatus @default(available)
+  price     Int
+
+  reservations Reservation[]
+
+  @@unique([roomId, bedNumber])
+  @@map("beds")
+}
+
+model Amenity {
+  id   String @id @default(uuid())
+  name String @unique
+  icon String?
+
+  properties PropertyAmenity[]
+  rooms      RoomAmenity[]
+
+  @@map("amenities")
+}
+
+model PropertyAmenity {
+  propertyId String   @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenityId  String   @map("amenity_id")
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, amenityId])
+  @@map("property_amenities")
+}
+
+model RoomAmenity {
+  roomId    String  @map("room_id")
+  room      Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  amenityId String  @map("amenity_id")
+  amenity   Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, amenityId])
+  @@map("room_amenities")
+}
+
+// ---------------------------------------------------------------------------
+// Guests, reservations, payments
+// ---------------------------------------------------------------------------
+
+model Guest {
+  id                 String       @id @default(uuid())
+  userId             String?      @unique @map("user_id")
+  user               User?        @relation(fields: [userId], references: [id])
+  name               String
+  phone              String
+  email              String?
+  nationality        String?
+  idType             GuestIdType? @map("id_type")
+  idNumberEncrypted  String?      @map("id_number_encrypted") // TODO(backend): encrypt at rest, per spec's data_security rule
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  reservations ReservationGuest[]
+
+  @@map("guests")
+}
+
+model Reservation {
+  id          String            @id @default(uuid())
+  propertyId  String            @map("property_id")
+  property    Property          @relation(fields: [propertyId], references: [id])
+  customerId  String?           @map("customer_id")
+  customer    User?             @relation("CustomerReservations", fields: [customerId], references: [id])
+  roomId      String?           @map("room_id")
+  room        Room?             @relation(fields: [roomId], references: [id])
+  bedId       String?           @map("bed_id")
+  bed         Bed?              @relation(fields: [bedId], references: [id])
+  checkIn     DateTime          @map("check_in") @db.Date
+  checkOut    DateTime          @map("check_out") @db.Date
+  guestsCount Int               @map("guests_count")
+  status      ReservationStatus @default(draft)
+  source      ReservationSource
+
+  subtotal    Int
+  tax         Int      @default(0)
+  discount    Int      @default(0)
+  serviceFee  Int      @default(0) @map("service_fee")
+  total       Int
+  currency    Currency @default(AFN)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  guests   ReservationGuest[]
+  payments Payment[]
+  review   Review?
+  supportTickets SupportTicket[]
+
+  // A room (or bed) cannot be double-booked for overlapping dates — enforced
+  // at the application layer via a transactional availability check, since
+  // Postgres exclusion constraints on date ranges aren't expressible in the
+  // Prisma schema DSL. TODO(backend): add a raw-SQL EXCLUDE USING gist
+  // constraint migration once this is stable, as defense in depth.
+  @@index([propertyId, status])
+  @@index([roomId, checkIn, checkOut])
+  @@index([bedId, checkIn, checkOut])
+  @@index([customerId])
+  @@map("reservations")
+}
+
+model ReservationGuest {
+  reservationId String      @map("reservation_id")
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  guestId       String      @map("guest_id")
+  guest         Guest       @relation(fields: [guestId], references: [id])
+
+  @@id([reservationId, guestId])
+  @@map("reservation_guests")
+}
+
+model Payment {
+  id                 String        @id @default(uuid())
+  reservationId      String        @map("reservation_id")
+  reservation        Reservation   @relation(fields: [reservationId], references: [id])
+  propertyId         String        @map("property_id")
+  property           Property      @relation(fields: [propertyId], references: [id])
+  customerId         String?       @map("customer_id")
+  amount             Int
+  currency           Currency      @default(AFN)
+  method             PaymentMethod
+  status             PaymentStatus @default(pending)
+  providerReference  String?       @unique @map("provider_reference") // idempotency key for provider webhooks
+  createdAt          DateTime      @default(now()) @map("created_at")
+
+  @@index([reservationId])
+  @@index([propertyId, status])
+  @@map("payments")
+}
+
+model Payout {
+  id                String       @id @default(uuid())
+  propertyId        String       @map("property_id")
+  property          Property     @relation(fields: [propertyId], references: [id])
+  amount            Int
+  currency          Currency     @default(AFN)
+  status            PayoutStatus @default(pending)
+  providerReference String?      @map("provider_reference")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  @@index([propertyId])
+  @@map("payouts")
+}
+
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+
+model Review {
+  id            String       @id @default(uuid())
+  reservationId String       @unique @map("reservation_id") // one review per eligible stay
+  reservation   Reservation  @relation(fields: [reservationId], references: [id])
+  customerId    String       @map("customer_id")
+  customer      User         @relation(fields: [customerId], references: [id])
+  propertyId    String       @map("property_id")
+  property      Property     @relation(fields: [propertyId], references: [id])
+
+  overallRating Int          @map("overall_rating")
+  cleanliness   Int?
+  location      Int?
+  staffRating   Int?         @map("staff_rating")
+  value         Int?
+  facilities    Int?
+  comment       String?
+  photos        String[]     @default([])
+  status        ReviewStatus @default(pending)
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  @@index([propertyId, status])
+  @@map("reviews")
+}
+
+// ---------------------------------------------------------------------------
+// Notifications, support, audit
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model SupportTicket {
+  id            String         @id @default(uuid())
+  userId        String         @map("user_id")
+  user          User           @relation(fields: [userId], references: [id])
+  reservationId String?        @map("reservation_id")
+  reservation   Reservation?   @relation(fields: [reservationId], references: [id])
+  category      TicketCategory
+  priority      TicketPriority @default(medium)
+  status        TicketStatus   @default(open)
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@index([status])
+  @@map("support_tickets")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  actor      User?    @relation(fields: [actorId], references: [id])
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Offline sync (Provider app) — queue metadata only; the actual conflict
+// resolution logic lives in the sync service, not the schema.
+// ---------------------------------------------------------------------------
+
+model SyncOperation {
+  id            String             @id @default(uuid())
+  deviceId      String             @map("device_id")
+  operationType SyncOperationType  @map("operation_type")
+  entityType    String             @map("entity_type")
+  entityId      String             @map("entity_id")
+  payload       Json
+  version       Int
+  status        SyncStatus         @default(pending)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  syncedAt      DateTime?          @map("synced_at")
+
+  @@index([deviceId, status])
+  @@map("sync_operations")
+}
