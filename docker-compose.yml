@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: manzil
+      POSTGRES_USER: manzil
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U manzil -d manzil']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://manzil:${POSTGRES_PASSWORD}@postgres:5432/manzil
+    command: [npm, run, 'prisma:deploy']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://manzil:${POSTGRES_PASSWORD}@postgres:5432/manzil
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set deployed frontend origins}
+      NODE_ENV: production
+      PORT: 3000
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  marketplace:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        APP: marketplace
+    ports: ['127.0.0.1:8080:80']
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+  provider:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        APP: provider
+    ports: ['127.0.0.1:8081:80']
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+  admin:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        APP: admin
+    ports: ['127.0.0.1:8082:80']
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  postgres_data:

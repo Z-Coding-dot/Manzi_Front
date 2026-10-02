@@ -1,3 +1,4 @@
+import { saveSession } from '@/api/session';
 import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,8 +17,9 @@ export default function Login() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
+
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,8 +40,7 @@ export default function Login() {
         email: form.get("email"),
         password: form.get("password"),
       });
-      localStorage.setItem("manzil_access_token", response.data.accessToken);
-      localStorage.setItem("manzil_refresh_token", response.data.refreshToken);
+      saveSession(response.data.accessToken, response.data.refreshToken, rememberMe);
       dispatch(
         loginSuccess({
           id: response.data.user.id,
@@ -82,10 +83,21 @@ export default function Login() {
           </Link>
         </div>
 
+        <label className="mt-4 flex items-center gap-2 text-sm text-body cursor-pointer">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="h-4 w-4 rounded border-line accent-forest"
+          />
+          {t("auth.rememberMe")}
+        </label>
+
         <Button type="submit" className="mt-6 w-full" disabled={loading}>
           {loading ? t("common.loading") : t("auth.signIn")}
         </Button>
         {error && <p className="mt-4 text-sm text-danger">{error}</p>}
+
 
         <p className="mt-6 text-center text-sm text-muted">
           {t("auth.noAccount")}{" "}

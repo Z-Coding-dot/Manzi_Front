@@ -7,9 +7,8 @@ import { PublicLayout } from '@/components/layout/PublicLayout'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { SelectField } from '@/components/ui/SelectField'
-import { getPropertyBySlug } from '@/data/mock/properties'
-import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { addBooking } from '@/redux/slices/bookingSlice'
+import { useGetPublishedPropertyQuery, useCreateBookingMutation } from '@/services/marketplaceApi'
+import { useAppSelector } from '@/redux/hooks'
 import { cn } from '@/utils/cn'
 import { formatCurrency } from '@/utils/formatCurrency'
 
@@ -25,10 +24,11 @@ export default function BookingFlow() {
   const { slug, roomId } = useParams<{ slug: string; roomId: string }>()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
   const user = useAppSelector((s) => s.auth.user)
 
-  const property = slug ? getPropertyBySlug(slug) : undefined
+  const { data: property, isLoading, isError } = useGetPublishedPropertyQuery(slug ?? '', { skip: !slug })
+  const [createBooking, { isLoading: isSaving }] = useCreateBookingMutation()
+  const [saveError, setSaveError] = useState('')
   const room = property?.rooms.find((r) => r.id === roomId)
 
   const [step, setStep] = useState(0)
@@ -40,7 +40,8 @@ export default function BookingFlow() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'hesabpay' | 'afpay'>('cash')
   const [done, setDone] = useState(false)
 
-  if (!property || !room) {
+  if (isLoading) return <PublicLayout><p role="status" className="p-8">{t('common.loading')}</p></PublicLayout>
+  if (isError || !property || !room) {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
@@ -56,25 +57,13 @@ export default function BookingFlow() {
   const nights = Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
   const total = room.price * nights
 
-  function handleConfirm() {
-    dispatch(
-      addBooking({
-        id: `bk_${Date.now()}`,
-        propertySlug: property!.slug,
-        propertyName: property!.name,
-        roomName: room!.name,
-        checkIn,
-        checkOut,
-        guestsCount,
-        guestName,
-        guestPhone,
-        paymentMethod,
-        total,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-      }),
-    )
-    setDone(true)
+  async function handleConfirm() {
+    if (!user) { navigate('/login'); return }
+    setSaveError('')
+    try {
+      await createBooking({ propertyId: property!.id, roomId: room!.id, checkIn, checkOut, guestsCount, guestName, guestPhone, source: 'marketplace' }).unwrap()
+      setDone(true)
+    } catch { setSaveError(t('booking.saveError')) }
   }
 
   if (done) {
@@ -176,11 +165,10 @@ export default function BookingFlow() {
           {step === 2 && (
             <SelectField label={t('booking.paymentMethod')} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as typeof paymentMethod)}>
               <option value="cash">Cash on arrival</option>
-              <option value="hesabpay">HesabPay</option>
-              <option value="afpay">AfPay</option>
             </SelectField>
           )}
 
+          {saveError && <p role="alert" className="mt-4 text-danger">{saveError}</p>}
           <div className="mt-6 flex justify-between gap-2">
             <Button type="button" variant="secondary" onClick={() => (step === 0 ? navigate(-1) : setStep((s) => s - 1))}>
               Back
@@ -189,12 +177,12 @@ export default function BookingFlow() {
               <Button
                 type="button"
                 onClick={() => setStep((s) => s + 1)}
-                disabled={step === 0 && (!guestName || !guestPhone)}
+                disabled={step === 0 && (!guestName.trim() || !guestPhone.trim() || checkOut <= checkIn || guestsCount < 1 || guestsCount > room.capacity)}
               >
                 Next
               </Button>
             ) : (
-              <Button type="button" onClick={handleConfirm}>
+              <Button type="button" onClick={() => void handleConfirm()} disabled={isSaving}>
                 {t('booking.confirmBooking')}
               </Button>
             )}

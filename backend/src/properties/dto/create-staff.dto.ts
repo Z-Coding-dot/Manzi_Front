@@ -1,9 +1,11 @@
 import { PropertyStaffRole } from '@prisma/client';
-import { IsEnum, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsPhoneNumber, IsUUID } from 'class-validator';
 
 export class CreateStaffDto {
-  @IsUUID()
-  userId!: string;
+  @IsOptional() @IsUUID()
+  userId?: string;
+  @IsOptional() @IsPhoneNumber()
+  phone?: string;
 
   @IsEnum(PropertyStaffRole)
   role!: PropertyStaffRole;

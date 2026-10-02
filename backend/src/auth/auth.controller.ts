@@ -1,5 +1,5 @@
+import { ValidatedBody } from '../common/decorators/validated-input.decorator.js';
 import {
-  Body,
   Controller,
   HttpCode,
   HttpStatus,
@@ -20,26 +20,26 @@ export class AuthController {
 
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  register(@Body() dto: RegisterDto) {
+  register(@ValidatedBody(RegisterDto) dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60_000 } }) // login rate limiting, per spec's security section
-  login(@Body() dto: LoginDto, @Ip() ip: string) {
+  login(@ValidatedBody(LoginDto) dto: LoginDto, @Ip() ip: string) {
     return this.authService.login(dto, { ipAddress: ip });
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@Body() dto: RefreshDto) {
+  refresh(@ValidatedBody(RefreshDto) dto: RefreshDto) {
     return this.authService.refresh(dto.refreshToken);
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@Body() dto: RefreshDto) {
+  logout(@ValidatedBody(RefreshDto) dto: RefreshDto) {
     return this.authService.logout(dto.refreshToken);
   }
 }

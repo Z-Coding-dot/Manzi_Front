@@ -1,3 +1,4 @@
+import { clearSession, sessionStorageForAuth } from '@/api/session';
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface CustomerUser {
@@ -12,7 +13,7 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-const storedUser = localStorage.getItem("manzil_marketplace_user");
+const storedUser = sessionStorageForAuth().getItem("manzil_marketplace_user");
 const initialUser = storedUser
   ? (JSON.parse(storedUser) as CustomerUser)
   : null;
@@ -20,7 +21,7 @@ const initialUser = storedUser
 const initialState: AuthState = {
   user: initialUser,
   isAuthenticated: Boolean(
-    localStorage.getItem("manzil_access_token") && initialUser,
+    sessionStorageForAuth().getItem("manzil_access_token") && initialUser,
   ),
 };
 
@@ -31,7 +32,7 @@ const authSlice = createSlice({
     loginSuccess(state, action: PayloadAction<CustomerUser>) {
       state.user = action.payload;
       state.isAuthenticated = true;
-      localStorage.setItem(
+      sessionStorageForAuth().setItem(
         "manzil_marketplace_user",
         JSON.stringify(action.payload),
       );
@@ -39,9 +40,7 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("manzil_access_token");
-      localStorage.removeItem("manzil_refresh_token");
-      localStorage.removeItem("manzil_marketplace_user");
+      clearSession();
     },
   },
 });

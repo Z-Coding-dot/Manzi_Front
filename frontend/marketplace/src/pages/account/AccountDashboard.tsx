@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { AccountLayout } from '@/components/layout/AccountLayout'
 import { Badge } from '@/components/ui/Badge'
 import { PropertyCard } from '@/components/ui/PropertyCard'
-import { mockProperties } from '@/data/mock/properties'
+import { useGetBookingsQuery, useGetPublishedPropertiesQuery } from '@/services/marketplaceApi'
 import { useAppSelector } from '@/redux/hooks'
 import { formatCurrency } from '@/utils/formatCurrency'
 import { formatDate } from '@/utils/formatDate'
@@ -12,13 +12,14 @@ import { formatDate } from '@/utils/formatDate'
 export default function AccountDashboard() {
   const { t, i18n } = useTranslation()
   const user = useAppSelector((s) => s.auth.user)
-  const reservations = useAppSelector((s) => s.bookings.reservations)
+  const { data: reservations = [] } = useGetBookingsQuery()
+  const { data: properties = [] } = useGetPublishedPropertiesQuery()
   const savedIds = useAppSelector((s) => s.saved.propertyIds)
 
   const today = new Date().toISOString().slice(0, 10)
   const upcoming = reservations.find((r) => r.status === 'confirmed' && r.checkIn >= today)
   const recent = reservations.slice(0, 3)
-  const saved = mockProperties.filter((p) => savedIds.includes(p.id)).slice(0, 3)
+  const saved = properties.filter((p) => savedIds.includes(p.id)).slice(0, 3)
 
   return (
     <AccountLayout>
@@ -38,8 +39,8 @@ export default function AccountDashboard() {
             <div className="mt-3 rounded-xl border border-line p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-medium text-ink">{upcoming.propertyName}</p>
-                  <p className="text-sm text-muted">{upcoming.roomName}</p>
+                  <p className="font-medium text-ink">{upcoming.property.name}</p>
+                  <p className="text-sm text-muted">{upcoming.room?.roomType}</p>
                   <p className="tabular mt-1 text-sm text-body">
                     {formatDate(upcoming.checkIn, i18n.language)} → {formatDate(upcoming.checkOut, i18n.language)}
                   </p>
@@ -64,7 +65,7 @@ export default function AccountDashboard() {
               {recent.map((r) => (
                 <div key={r.id} className="flex items-center justify-between rounded-lg border border-line p-3 text-sm">
                   <div>
-                    <p className="font-medium text-ink">{r.propertyName}</p>
+                    <p className="font-medium text-ink">{r.property.name}</p>
                     <p className="text-muted">{formatDate(r.checkIn, i18n.language)} → {formatDate(r.checkOut, i18n.language)}</p>
                   </div>
                   <span className="tabular font-medium text-ink">{formatCurrency(r.total, 'AFN', i18n.language)}</span>

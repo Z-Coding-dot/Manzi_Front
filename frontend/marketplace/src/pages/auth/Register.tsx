@@ -1,3 +1,4 @@
+import { saveSession } from '@/api/session';
 import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -44,8 +45,7 @@ export default function Register() {
         password: form.get("password"),
         language,
       });
-      localStorage.setItem("manzil_access_token", response.data.accessToken);
-      localStorage.setItem("manzil_refresh_token", response.data.refreshToken);
+      saveSession(response.data.accessToken, response.data.refreshToken, true);
       dispatch(
         loginSuccess({
           id: response.data.user.id,

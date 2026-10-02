@@ -13,6 +13,7 @@
     "start:dev": "tsx watch src/main.ts",
     "start:debug": "tsx watch --inspect src/main.ts",
     "start:prod": "node dist/main.js",
+    "smoke:production": "node scripts/verify-production.mjs",
     "lint": "oxlint src/ test/",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -21,6 +22,7 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts"
   },

@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { AccountLayout } from '@/components/layout/AccountLayout'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PropertyCard } from '@/components/ui/PropertyCard'
-import { mockProperties } from '@/data/mock/properties'
+import { useGetPublishedPropertiesQuery } from '@/services/marketplaceApi'
 import { useAppSelector } from '@/redux/hooks'
 
 export default function AccountSaved() {
   const { t } = useTranslation()
   const savedIds = useAppSelector((s) => s.saved.propertyIds)
-  const saved = mockProperties.filter((p) => savedIds.includes(p.id))
+  const { data: properties = [] } = useGetPublishedPropertiesQuery()
+  const saved = properties.filter((p) => savedIds.includes(p.id))
 
   return (
     <AccountLayout>

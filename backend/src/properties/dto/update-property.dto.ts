@@ -97,4 +97,9 @@ export class UpdatePropertyDto {
   @IsOptional()
   @IsUUID()
   ownerId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  photos?: string[];
 }

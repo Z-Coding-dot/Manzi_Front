@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import CmsPage from "@/pages/marketplace/static/CmsPage";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
@@ -16,14 +17,9 @@ import MapView from "@/pages/marketplace/MapView";
 import PropertyDetails from "@/pages/marketplace/PropertyDetails";
 import Search from "@/pages/marketplace/Search";
 import Stays from "@/pages/marketplace/Stays";
-import About from "@/pages/marketplace/static/About";
 import CancellationPolicy from "@/pages/marketplace/static/CancellationPolicy";
-import Contact from "@/pages/marketplace/static/Contact";
 import ForPropertyOwners from "@/pages/marketplace/static/ForPropertyOwners";
 import ProviderOnboardingInfo from "@/pages/marketplace/static/ProviderOnboardingInfo";
-import Help from "@/pages/marketplace/static/Help";
-import Privacy from "@/pages/marketplace/static/Privacy";
-import Terms from "@/pages/marketplace/static/Terms";
 
 export default function App() {
   return (
@@ -81,11 +77,11 @@ export default function App() {
           }
         />
 
-        <Route path="/about" element={<About />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/about" element={<CmsPage slug="about" />} />
+        <Route path="/help" element={<CmsPage slug="help" />} />
+        <Route path="/contact" element={<CmsPage slug="contact" />} />
+        <Route path="/terms" element={<CmsPage slug="terms" />} />
+        <Route path="/privacy" element={<CmsPage slug="privacy" />} />
         <Route path="/cancellation-policy" element={<CancellationPolicy />} />
         <Route path="/for-property-owners" element={<ForPropertyOwners />} />
         <Route

@@ -7,7 +7,11 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const passwordHash = await bcrypt.hash('ChangeMe123!', 12);
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@manzil.af';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) throw new Error('Set a valid SEED_ADMIN_EMAIL');
+  if (!seedPassword || seedPassword.length < 12) throw new Error('Set SEED_ADMIN_PASSWORD to a unique password of at least 12 characters');
+  const passwordHash = await bcrypt.hash(seedPassword, 12);
 
   await prisma.amenity.createMany({
     data: [
@@ -31,35 +35,37 @@ async function main() {
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@manzil.af' },
+    where: { email: adminEmail },
     update: {},
     create: {
       name: 'Manzil Admin',
-      email: 'admin@manzil.af',
+      email: adminEmail,
       passwordHash,
       role: 'super_admin',
       language: 'en',
     },
   });
 
-  const owner = await prisma.user.upsert({
+  if (process.env.SEED_DEMO_OWNER === 'true') {
+    if (process.env.NODE_ENV === 'production') throw new Error('Demo owner seeding is forbidden in production');
+    const ownerPassword = process.env.SEED_OWNER_PASSWORD;
+    if (!ownerPassword || ownerPassword.length < 12 || ownerPassword === seedPassword) throw new Error('Set a distinct SEED_OWNER_PASSWORD of at least 12 characters');
+    await prisma.user.upsert({
     where: { email: 'owner@manzil.af' },
     update: {},
     create: {
       name: 'Parsa',
       email: 'owner@manzil.af',
-      passwordHash,
+      passwordHash: await bcrypt.hash(ownerPassword, 12),
       role: 'property_owner',
       language: 'en',
     },
   });
+  }
 
   console.log('Seeded users:');
-  console.log(`  Admin: ${admin.email} / ChangeMe123!`);
-  console.log(`  Property owner: ${owner.email} / ChangeMe123!`);
-  console.log(
-    'Change these passwords before using anything beyond local development.',
-  );
+  console.log(`  Admin: ${admin.email}`);
+  console.log('Existing account passwords are not modified by this command.');
 }
 
 main()

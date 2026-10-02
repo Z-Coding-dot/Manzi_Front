@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomUUID } from 'crypto';
 import type { SignOptions } from 'jsonwebtoken';
+import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { LoginDto } from './dto/login.dto.js';
@@ -100,15 +101,17 @@ export class AuthService {
     }
 
     const tokenHash = hashToken(refreshToken);
-    const stored = await this.prisma.refreshToken.findUnique({
+    return this.prisma.$transaction(async tx => {
+    await tx.$queryRaw`SELECT id FROM refresh_tokens WHERE token_hash = ${tokenHash} FOR UPDATE`;
+    const stored = await tx.refreshToken.findUnique({
       where: { tokenHash },
     });
 
-    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+    if (!stored || stored.userId !== payload.sub || stored.revokedAt || stored.expiresAt < new Date()) {
       throw new UnauthorizedException('Refresh token is no longer valid');
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await tx.user.findUnique({
       where: { id: payload.sub },
     });
     if (!user || user.status !== 'active') {
@@ -117,13 +120,14 @@ export class AuthService {
 
     // Rotation: the old token is revoked and replaced atomically, so a
     // stolen-and-reused old refresh token fails on its next use.
-    const tokens = await this.issueTokenPair(user.id, user.role);
-    await this.prisma.refreshToken.update({
+    const tokens = await this.issueTokenPair(user.id, user.role, undefined, tx);
+    await tx.refreshToken.update({
       where: { id: stored.id },
       data: { revokedAt: new Date() },
     });
 
     return { user: this.toPublicUser(user), ...tokens };
+    });
   }
 
   async logout(refreshToken: string) {
@@ -139,6 +143,7 @@ export class AuthService {
     userId: string,
     role: string,
     meta?: { ipAddress?: string; deviceLabel?: string },
+    tx: Prisma.TransactionClient = this.prisma,
   ): Promise<TokenPair> {
     const accessToken = await this.jwt.signAsync(
       { sub: userId, role },
@@ -161,7 +166,7 @@ export class AuthService {
       },
     );
 
-    await this.prisma.refreshToken.create({
+    await tx.refreshToken.create({
       data: {
         userId,
         tokenHash: hashToken(refreshToken),

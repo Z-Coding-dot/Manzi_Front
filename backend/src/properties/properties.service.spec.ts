@@ -19,6 +19,9 @@ function createService() {
       findUniqueOrThrow: vi.fn(),
     },
   } as unknown as PrismaService;
+  prisma.$transaction = vi.fn().mockImplementation(callback => callback(prisma));
+  prisma.auditLog = { create: vi.fn() } as unknown as PrismaService['auditLog'];
+  prisma.notification = { create: vi.fn() } as unknown as PrismaService['notification'];
 
   return { prisma, service: new PropertiesService(prisma) };
 }

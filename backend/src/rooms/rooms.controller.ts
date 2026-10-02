@@ -1,5 +1,5 @@
+import { ValidatedBody } from '../common/decorators/validated-input.decorator.js';
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -24,7 +24,8 @@ import { UpdateRoomDto } from './dto/update-room.dto.js';
 import { RoomsService } from './rooms.service.js';
 
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('property_owner', 'property_manager', 'receptionist', 'property_staff', 'admin', 'super_admin')
 export class RoomsController {
   constructor(@Inject(RoomsService) private roomsService: RoomsService) {}
 
@@ -46,7 +47,7 @@ export class RoomsController {
   @Roles('property_owner', 'admin', 'super_admin')
   addPropertyAmenity(
     @Param('propertyId', ParseUUIDPipe) propertyId: string,
-    @Body() dto: AssignAmenityDto,
+    @ValidatedBody(AssignAmenityDto) dto: AssignAmenityDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.addPropertyAmenity(
@@ -80,7 +81,7 @@ export class RoomsController {
   @Roles('property_owner', 'admin', 'super_admin')
   createBed(
     @Param('roomId', ParseUUIDPipe) roomId: string,
-    @Body() dto: CreateBedDto,
+    @ValidatedBody(CreateBedDto) dto: CreateBedDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.createBed(roomId, dto, user);
@@ -91,7 +92,7 @@ export class RoomsController {
   @Roles('property_owner', 'admin', 'super_admin')
   updateBed(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateBedDto,
+    @ValidatedBody(UpdateBedDto) dto: UpdateBedDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.updateBed(id, dto, user);
@@ -120,7 +121,7 @@ export class RoomsController {
   @Roles('property_owner', 'admin', 'super_admin')
   addRoomAmenity(
     @Param('roomId', ParseUUIDPipe) roomId: string,
-    @Body() dto: AssignAmenityDto,
+    @ValidatedBody(AssignAmenityDto) dto: AssignAmenityDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.addRoomAmenity(roomId, dto.amenityId, user);
@@ -147,10 +148,10 @@ export class RoomsController {
 
   @Post('properties/:propertyId/rooms')
   @UseGuards(RolesGuard)
-  @Roles('property_owner', 'admin', 'super_admin')
+  @Roles('property_owner', 'property_manager', 'admin', 'super_admin')
   create(
     @Param('propertyId', ParseUUIDPipe) propertyId: string,
-    @Body() dto: CreateRoomDto,
+    @ValidatedBody(CreateRoomDto) dto: CreateRoomDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.create(propertyId, dto, user);
@@ -158,10 +159,10 @@ export class RoomsController {
 
   @Patch('rooms/:id')
   @UseGuards(RolesGuard)
-  @Roles('property_owner', 'admin', 'super_admin')
+  @Roles('property_owner', 'property_manager', 'admin', 'super_admin')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateRoomDto,
+    @ValidatedBody(UpdateRoomDto) dto: UpdateRoomDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.roomsService.update(id, dto, user);
@@ -169,7 +170,7 @@ export class RoomsController {
 
   @Delete('rooms/:id')
   @UseGuards(RolesGuard)
-  @Roles('property_owner', 'admin', 'super_admin')
+  @Roles('property_owner', 'property_manager', 'admin', 'super_admin')
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,

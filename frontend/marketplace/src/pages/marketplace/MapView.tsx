@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom'
 
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { StarRating } from '@/components/ui/StarRating'
-import { mockProperties } from '@/data/mock/properties'
+import { useGetPublishedPropertiesQuery } from '@/services/marketplaceApi'
 import { cn } from '@/utils/cn'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { DEFAULT_PROPERTY_PLACEHOLDER } from '@/utils/placeholderImage'
 
 // Kabul bounding box, roughly — used only to place mock pins proportionally.
 const BOUNDS = { latMin: 34.505, latMax: 34.555, lngMin: 69.12, lngMax: 69.2 }
@@ -18,6 +19,7 @@ function toPercent(lat: number, lng: number) {
 }
 
 export default function MapView() {
+  const { data: publishedProperties = [] } = useGetPublishedPropertiesQuery()
   const { t, i18n } = useTranslation()
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -33,7 +35,7 @@ export default function MapView() {
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
           {/* List */}
           <div className="scroll-thin max-h-[560px] space-y-3 overflow-y-auto pe-1">
-            {mockProperties.map((p) => (
+            {publishedProperties.map((p) => (
               <div
                 key={p.id}
                 onMouseEnter={() => setActiveId(p.id)}
@@ -42,7 +44,15 @@ export default function MapView() {
                   activeId === p.id ? 'border-forest bg-forest-soft/40' : 'border-line',
                 )}
               >
-                <img src={p.images[0]} alt={p.name} className="h-16 w-20 shrink-0 rounded-lg object-cover" />
+                <img
+                  src={p.images?.[0] || DEFAULT_PROPERTY_PLACEHOLDER}
+                  alt={p.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
+                  }}
+                  className="h-16 w-20 shrink-0 rounded-lg object-cover"
+                />
                 <div className="min-w-0 flex-1">
                   <Link to={`/property/${p.slug}`} className="truncate font-medium text-ink hover:underline">
                     {p.name}
@@ -59,7 +69,7 @@ export default function MapView() {
 
           {/* Pseudo-map */}
           <div className="relative min-h-[400px] overflow-hidden rounded-xl border border-line bg-[linear-gradient(0deg,transparent_24%,var(--color-line)_25%,var(--color-line)_26%,transparent_27%,transparent_74%,var(--color-line)_75%,var(--color-line)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,var(--color-line)_25%,var(--color-line)_26%,transparent_27%,transparent_74%,var(--color-line)_75%,var(--color-line)_76%,transparent_77%,transparent)] bg-[length:24px_24px] bg-paper">
-            {mockProperties.map((p) => {
+            {publishedProperties.map((p) => {
               const { x, y } = toPercent(p.latitude, p.longitude)
               const active = activeId === p.id
               return (

@@ -3,12 +3,13 @@ import { useParams } from 'react-router-dom'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PropertyCard } from '@/components/ui/PropertyCard'
-import { mockProperties } from '@/data/mock/properties'
+import { useGetPublishedPropertiesQuery } from '@/services/marketplaceApi'
 
 export default function AreaPage() {
+  const { data: publishedProperties = [] } = useGetPublishedPropertiesQuery()
   const { area } = useParams<{ area: string }>()
   const decoded = area ? decodeURIComponent(area) : ''
-  const properties = mockProperties.filter((p) => p.area.toLowerCase() === decoded.toLowerCase())
+  const properties = publishedProperties.filter((p) => p.area.toLowerCase() === decoded.toLowerCase())
 
   return (
     <PublicLayout>

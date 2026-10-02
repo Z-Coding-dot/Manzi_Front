@@ -9,10 +9,15 @@ import {
 } from '@nestjs/throttler';
 
 import { AuthModule } from './auth/auth.module.js';
+import { AdminModule } from './admin/admin.module.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { PropertiesModule } from './properties/properties.module.js';
 import { RoomsModule } from './rooms/rooms.module.js';
+import { ReservationsModule } from './reservations/reservations.module.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
+import { CmsModule } from './cms/cms.module.js';
+import { OperationsModule } from './operations/operations.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -23,8 +28,13 @@ import { UsersModule } from './users/users.module.js';
     }),
     PrismaModule,
     AuthModule,
+    AdminModule,
     PropertiesModule,
     RoomsModule,
+    ReservationsModule,
+    NotificationsModule,
+    CmsModule,
+    OperationsModule,
     UsersModule,
   ],
   controllers: [HealthController],

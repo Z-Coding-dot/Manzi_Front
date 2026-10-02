@@ -271,6 +271,8 @@ model Property {
   languagesSpoken    Language[]          @map("languages_spoken")
   paymentMethods     PaymentMethod[]     @map("payment_methods")
   policies           String?
+  photos             String[]            @default([])
+  reviewNotes        String?             @map("review_notes")
   verificationStatus VerificationStatus  @default(draft) @map("verification_status")
   published          Boolean             @default(false)
   rating             Float               @default(0)
@@ -285,6 +287,9 @@ model Property {
   payouts     Payout[]
   reviews     Review[]
   documents   PropertyDocument[]
+  guests      Guest[]
+  housekeeping HousekeepingTask[]
+  maintenance MaintenanceIssue[]
 
   @@index([type])
   @@index([district])
@@ -338,10 +343,60 @@ model Room {
   beds         Bed[]
   amenities    RoomAmenity[]
   reservations Reservation[]
+  housekeeping HousekeepingTask[]
+  maintenance MaintenanceIssue[]
 
   @@unique([propertyId, roomNumber])
   @@index([propertyId, status])
   @@map("rooms")
+}
+
+enum HousekeepingStatus {
+  pending
+  in_progress
+  done
+  inspected
+}
+
+enum MaintenanceStatus {
+  open
+  in_progress
+  resolved
+}
+
+enum MaintenancePriority {
+  low
+  medium
+  high
+}
+
+model HousekeepingTask {
+  id String @id @default(uuid())
+  propertyId String @map("property_id")
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  roomId String @map("room_id")
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  status HousekeepingStatus @default(pending)
+  assignedTo String @default("") @map("assigned_to")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([propertyId, status])
+  @@map("housekeeping_tasks")
+}
+
+model MaintenanceIssue {
+  id String @id @default(uuid())
+  propertyId String @map("property_id")
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  roomId String @map("room_id")
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  title String
+  priority MaintenancePriority @default(medium)
+  status MaintenanceStatus @default(open)
+  reportedAt DateTime @default(now()) @map("reported_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([propertyId, status])
+  @@map("maintenance_issues")
 }
 
 model Bed {
@@ -396,6 +451,8 @@ model RoomAmenity {
 
 model Guest {
   id                 String       @id @default(uuid())
+  propertyId         String?      @map("property_id")
+  property           Property?    @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   userId             String?      @unique @map("user_id")
   user               User?        @relation(fields: [userId], references: [id])
   name               String
@@ -409,6 +466,7 @@ model Guest {
   reservations ReservationGuest[]
 
   @@map("guests")
+  @@index([propertyId])
 }
 
 model Reservation {
@@ -517,6 +575,7 @@ model Review {
   value         Int?
   facilities    Int?
   comment       String?
+  ownerResponse String?      @map("owner_response")
   photos        String[]     @default([])
   status        ReviewStatus @default(pending)
   createdAt     DateTime     @default(now()) @map("created_at")
@@ -552,10 +611,78 @@ model SupportTicket {
   category      TicketCategory
   priority      TicketPriority @default(medium)
   status        TicketStatus   @default(open)
+  subject       String         @default("")
+  body          String         @default("")
+  assignedToId  String?        @map("assigned_to_id")
+  response      String?
   createdAt     DateTime       @default(now()) @map("created_at")
 
   @@index([status])
   @@map("support_tickets")
+}
+
+enum ContentStatus {
+  draft
+  published
+}
+
+model CmsPage {
+  id             String        @id @default(uuid())
+  slug           String
+  locale         Language
+  title          String
+  body           String
+  status         ContentStatus @default(draft)
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  updatedBy      String        @map("updated_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  @@unique([slug, locale])
+  @@map("cms_pages")
+}
+
+model CmsBanner {
+  id         String   @id @default(uuid())
+  locale     Language
+  title      String
+  body       String   @default("")
+  image      String?
+  link       String?
+  propertyId String?  @map("property_id")
+  sortOrder  Int      @default(0) @map("sort_order")
+  active     Boolean  @default(false)
+  startsAt   DateTime? @map("starts_at")
+  endsAt     DateTime? @map("ends_at")
+  updatedBy  String   @map("updated_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  @@index([locale, active])
+  @@map("cms_banners")
+}
+
+model BlogPost {
+  id             String        @id @default(uuid())
+  slug           String
+  locale         Language
+  title          String
+  body           String
+  coverImage     String?       @map("cover_image")
+  status         ContentStatus @default(draft)
+  authorId       String        @map("author_id")
+  publishedAt    DateTime?     @map("published_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  @@unique([slug, locale])
+  @@map("blog_posts")
+}
+
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedBy String   @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("platform_settings")
 }
 
 model AuditLog {

@@ -1,10 +1,18 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { UpdateProfileDto } from './update-profile.dto.js';
 
 @Injectable()
 export class UsersService {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  async updateMe(userId: string, data: UpdateProfileDto) {
+    return this.prisma.$transaction(async tx => {
+      const user = await tx.user.update({ where: { id: userId }, data, select: { id: true, name: true, email: true, phone: true, role: true, language: true, currency: true } });
+      await tx.auditLog.create({ data: { actorId: userId, entityType: 'User', entityId: userId, action: 'profile_update', metadata: { fields: Object.keys(data) } } });
+      return user;
+    });
+  }
 
   async findMe(userId: string) {
     const user = await this.prisma.user.findUnique({

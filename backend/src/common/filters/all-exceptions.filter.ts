@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 
 interface ErrorResponseBody {
   error: {
@@ -44,9 +45,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message = body;
       } else if (typeof body === 'object' && body !== null) {
         const b = body as Record<string, unknown>;
-        message = (b.message as string) ?? exception.message;
-        details = b.message !== message ? b.message : undefined;
+        message = typeof b.message === 'string' ? b.message : exception.message;
+        details = Array.isArray(b.message) ? b.message : undefined;
       }
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError && ['P2002', 'P2003', 'P2025'].includes(exception.code)) {
+      status = exception.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.CONFLICT;
+      message = exception.code === 'P2002' ? 'A matching record already exists' : exception.code === 'P2003' ? 'This record is referenced by other records' : 'Record not found';
     } else if (exception instanceof Error) {
       // Never leak internal error messages/stack traces to the client.
       this.logger.error(exception.message, exception.stack);

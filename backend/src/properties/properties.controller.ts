@@ -1,5 +1,5 @@
+import { ValidatedBody } from '../common/decorators/validated-input.decorator.js';
 import {
-  Body,
   Controller,
   Delete,
   Get,
@@ -25,7 +25,8 @@ import { UpdateStaffDto } from './dto/update-staff.dto.js';
 import { PropertiesService } from './properties.service.js';
 
 @Controller('properties')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('property_owner', 'property_manager', 'receptionist', 'property_staff', 'admin', 'super_admin')
 export class PropertiesController {
   constructor(
     @Inject(PropertiesService) private propertiesService: PropertiesService,
@@ -48,7 +49,7 @@ export class PropertiesController {
   @UseGuards(RolesGuard)
   @Roles('property_owner', 'admin', 'super_admin')
   create(
-    @Body() dto: CreatePropertyDto,
+    @ValidatedBody(CreatePropertyDto) dto: CreatePropertyDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.propertiesService.create(dto, user);
@@ -59,7 +60,7 @@ export class PropertiesController {
   @Roles('property_owner', 'admin', 'super_admin')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdatePropertyDto,
+    @ValidatedBody(UpdatePropertyDto) dto: UpdatePropertyDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.propertiesService.update(id, dto, user);
@@ -90,10 +91,10 @@ export class PropertiesController {
   @Roles('admin', 'super_admin')
   review(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: ReviewPropertyDto,
+    @ValidatedBody(ReviewPropertyDto) dto: ReviewPropertyDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.propertiesService.review(id, dto.status, user);
+    return this.propertiesService.review(id, dto.status, user, dto.notes);
   }
 
   @Get(':id/documents')
@@ -109,7 +110,7 @@ export class PropertiesController {
   @Roles('property_owner', 'admin', 'super_admin')
   addDocument(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: CreateDocumentDto,
+    @ValidatedBody(CreateDocumentDto) dto: CreateDocumentDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.propertiesService.addDocument(id, dto, user);
@@ -139,7 +140,7 @@ export class PropertiesController {
   @Roles('property_owner', 'admin', 'super_admin')
   addStaff(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: CreateStaffDto,
+    @ValidatedBody(CreateStaffDto) dto: CreateStaffDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.propertiesService.addStaff(id, dto, user);
@@ -151,7 +152,7 @@ export class PropertiesController {
   updateStaff(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('staffId', ParseUUIDPipe) staffId: string,
-    @Body() dto: UpdateStaffDto,
+    @ValidatedBody(UpdateStaffDto) dto: UpdateStaffDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.propertiesService.updateStaff(id, staffId, dto, user);

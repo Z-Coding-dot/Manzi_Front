@@ -10,6 +10,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import { useGetPublishedPropertyQuery } from "@/services/marketplaceApi";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/formatDate";
+import { DEFAULT_PROPERTY_PLACEHOLDER } from "@/utils/placeholderImage";
 
 export default function PropertyDetails() {
   const { slug } = useParams<{ slug: string }>();
@@ -55,17 +56,25 @@ export default function PropertyDetails() {
     <PublicLayout>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Gallery */}
-        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl sm:h-96 sm:grid-cols-4 sm:grid-rows-2">
+        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl sm:h-96 sm:grid-cols-4 sm:grid-rows-2 bg-paper">
           <img
-            src={property.images[0]}
+            src={property.images?.[0] || DEFAULT_PROPERTY_PLACEHOLDER}
             alt={property.name}
-            className="h-56 w-full object-cover sm:col-span-2 sm:row-span-2 sm:h-full"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
+            }}
+            className={`h-56 w-full object-cover sm:h-full ${property.images?.length > 1 ? "sm:col-span-2 sm:row-span-2" : "sm:col-span-4 sm:row-span-2"}`}
           />
-          {property.images.slice(1, 3).map((src, i) => (
+          {property.images?.slice(1, 3).map((src, i) => (
             <img
               key={i}
               src={src}
               alt=""
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
+              }}
               className="hidden h-full w-full object-cover sm:block"
             />
           ))}

@@ -1,5 +1,8 @@
 {
-  "app": { "name": "Manzil", "tagline": "Find and book verified stays in Kabul" },
+  "app": {
+    "name": "Manzil",
+    "tagline": "Find and book verified stays in Kabul"
+  },
   "nav": {
     "home": "Home",
     "search": "Search",
@@ -147,7 +150,8 @@
     "confirmBooking": "Confirm reservation",
     "confirmedTitle": "Reservation confirmed",
     "confirmedBody": "A confirmation has been sent to your email and phone.",
-    "backToAccount": "Go to my reservations"
+    "backToAccount": "Go to my reservations",
+    "saveError": "Unable to save your booking. Check availability and try again."
   },
   "footer": {
     "about": "About",
@@ -158,5 +162,9 @@
     "cancellationPolicy": "Cancellation policy",
     "forOwners": "For property owners",
     "rights": "All rights reserved."
+  },
+  "cms": {
+    "retry": "Try again",
+    "unavailable": "This page is not published in this language yet."
   }
 }

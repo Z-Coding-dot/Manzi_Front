@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { toggleSaved } from "@/redux/slices/savedSlice";
 import { cn } from "@/utils/cn";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { DEFAULT_PROPERTY_PLACEHOLDER } from "@/utils/placeholderImage";
 
 export function PropertyCard({
   property,
@@ -49,18 +50,16 @@ export function PropertyCard({
         </button>
         <Link to={`/property/${property.slug}`} className="block">
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-paper">
-            {property.images[0] ? (
-              <img
-                src={property.images[0]}
-                alt={property.name}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-forest-soft text-sm font-medium text-forest">
-                {property.name}
-              </div>
-            )}
+            <img
+              src={property.images?.[0] || DEFAULT_PROPERTY_PLACEHOLDER}
+              alt={property.name}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
+              }}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
             {property.verified && (
               <Badge
                 tone="onDark"

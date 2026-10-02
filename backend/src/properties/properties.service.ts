@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -42,11 +43,11 @@ export class PropertiesService {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const where = ADMIN_ROLES.includes(user.role) ? {} : { ownerId: user.sub };
+    const where = ADMIN_ROLES.includes(user.role) ? {} : { OR: [{ ownerId: user.sub }, { staff: { some: { userId: user.sub, status: 'active' as const } } }] };
     return this.prisma.property.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { rooms: true, staff: true } } },
+      include: { owner: { select: { id: true, name: true, email: true } }, _count: { select: { rooms: true, staff: true } } },
     });
   }
 
@@ -58,7 +59,7 @@ export class PropertiesService {
       },
       include: {
         rooms: {
-          where: { status: 'available' },
+          where: { status: { notIn: ['maintenance', 'out_of_service'] } },
           orderBy: { basePrice: 'asc' },
         },
         amenities: { include: { amenity: true } },
@@ -77,7 +78,7 @@ export class PropertiesService {
       },
       include: {
         rooms: {
-          where: { status: 'available' },
+          where: { status: { notIn: ['maintenance', 'out_of_service'] } },
           orderBy: { basePrice: 'asc' },
         },
         amenities: { include: { amenity: true } },
@@ -108,7 +109,11 @@ export class PropertiesService {
       },
     });
     if (!property) throw new NotFoundException('Property not found');
-    this.assertCanManage(property.ownerId, user);
+    if (!ADMIN_ROLES.includes(user.role) && property.ownerId !== user.sub) {
+      const membership = await this.prisma.propertyStaff.findFirst({ where: { propertyId: id, userId: user.sub, status: 'active' } });
+      if (!membership) throw new ForbiddenException('You do not have access to this property');
+      return { ...property, documents: [], staff: [] };
+    }
     return property;
   }
 
@@ -149,6 +154,7 @@ export class PropertiesService {
         languagesSpoken: dto.languagesSpoken ?? [],
         paymentMethods: dto.paymentMethods ?? [],
         policies: dto.policies,
+        photos: dto.photos ?? [],
         ownerId,
       },
     });
@@ -216,12 +222,14 @@ export class PropertiesService {
     id: string,
     status: PropertyReviewDecision,
     user: AuthenticatedUser,
+    notes?: string,
   ) {
     if (!ADMIN_ROLES.includes(user.role)) {
       throw new ForbiddenException('Only admins can review properties');
     }
 
-    const result = await this.prisma.property.updateMany({
+    return this.prisma.$transaction(async tx => {
+    const result = await tx.property.updateMany({
       where: {
         id,
         verificationStatus: { in: REVIEWABLE_VERIFICATION_STATUSES },
@@ -229,11 +237,12 @@ export class PropertiesService {
       data: {
         verificationStatus: status,
         published: status === VerificationStatus.approved,
+        ...(notes !== undefined ? { reviewNotes: notes } : {}),
       },
     });
 
     if (result.count === 0) {
-      const property = await this.prisma.property.findUnique({
+      const property = await tx.property.findUnique({
         where: { id },
         select: { id: true },
       });
@@ -241,7 +250,11 @@ export class PropertiesService {
       throw new ConflictException('Property is not awaiting review');
     }
 
-    return this.prisma.property.findUniqueOrThrow({ where: { id } });
+    const property = await tx.property.findUniqueOrThrow({ where: { id } });
+    await tx.auditLog.create({ data: { actorId: user.sub, entityType: 'Property', entityId: id, action: 'review', metadata: { status, notes: notes ?? '' } } });
+    await tx.notification.create({ data: { userId: property.ownerId, type: 'system', title: 'Property review completed', body: `${property.name}: ${status}${notes ? ` — ${notes}` : ''}` } });
+    return property;
+    });
   }
 
   async listDocuments(id: string, user: AuthenticatedUser) {
@@ -287,6 +300,7 @@ export class PropertiesService {
             id: true,
             name: true,
             email: true,
+            phone: true,
             role: true,
             status: true,
           },
@@ -298,8 +312,9 @@ export class PropertiesService {
 
   async addStaff(id: string, dto: CreateStaffDto, user: AuthenticatedUser) {
     await this.getManagedProperty(id, user);
+    if ((!dto.userId && !dto.phone) || (dto.userId && dto.phone)) throw new BadRequestException('Provide exactly one user ID or registered phone');
     const staffUser = await this.prisma.user.findUnique({
-      where: { id: dto.userId },
+      where: dto.userId ? { id: dto.userId } : { phone: dto.phone! },
     });
     if (!staffUser) throw new NotFoundException('Staff user not found');
     const allowedStaffRoles: UserRole[] = [
@@ -307,13 +322,14 @@ export class PropertiesService {
       UserRole.receptionist,
       UserRole.property_staff,
     ];
-    if (!allowedStaffRoles.includes(staffUser.role)) {
+    if (!allowedStaffRoles.includes(staffUser.role) || staffUser.role !== dto.role || staffUser.status !== 'active') {
       throw new ConflictException('User does not have a property staff role');
     }
 
     try {
       return await this.prisma.propertyStaff.create({
-        data: { propertyId: id, ...dto },
+        data: { propertyId: id, userId: staffUser.id, role: dto.role },
+        include: { user: { select: { name: true, phone: true } } },
       });
     } catch (error) {
       if (this.isUniqueViolation(error))

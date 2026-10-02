@@ -241,6 +241,10 @@ export class RoomsService {
     });
     if (!property) throw new NotFoundException('Property not found');
     if (!ADMIN_ROLES.includes(user.role) && property.ownerId !== user.sub) {
+      if (['property_manager', 'receptionist', 'property_staff'].includes(user.role)) {
+        const membership = await this.prisma.propertyStaff.findFirst({ where: { propertyId, userId: user.sub, status: 'active' } });
+        if (membership) return;
+      }
       throw new ForbiddenException('You do not have access to this property');
     }
   }

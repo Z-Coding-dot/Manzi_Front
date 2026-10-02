@@ -5,18 +5,24 @@ import { useTranslation } from 'react-i18next'
 import { AccountLayout } from '@/components/layout/AccountLayout'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
-import { useAppSelector } from '@/redux/hooks'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { loginSuccess, type CustomerUser } from '@/redux/slices/authSlice'
+import { httpClient } from '@/api/httpClient'
 
 export default function AccountProfile() {
   const { t } = useTranslation()
   const user = useAppSelector((s) => s.auth.user)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const dispatch = useAppDispatch()
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // TODO(backend): PATCH /api/v1/users/me
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setSaved(false); setError(''); setSaving(true)
+    const values = new FormData(e.currentTarget)
+    try { const { data } = await httpClient.patch<CustomerUser>('/users/me', { name: values.get('name'), ...(values.get('phone') ? { phone: values.get('phone') } : {}) }); dispatch(loginSuccess(data)); setSaved(true) }
+    catch { setError(t('booking.saveError')) } finally { setSaving(false) }
   }
 
   return (
@@ -32,10 +38,11 @@ export default function AccountProfile() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
-        <Field label={t('auth.fullName')} defaultValue={user?.name} />
-        <Field label={t('auth.email')} type="email" defaultValue={user?.email} />
-        <Field label={t('auth.phone')} type="tel" placeholder="+93 7X XXX XXXX" />
-        <Button type="submit">Save changes</Button>
+        {error && <p role="alert" className="text-danger">{error}</p>}
+        <Field name="name" label={t('auth.fullName')} defaultValue={user?.name} required />
+        <Field label={t('auth.email')} type="email" defaultValue={user?.email} readOnly />
+        <Field name="phone" label={t('auth.phone')} type="tel" placeholder="+93 7X XXX XXXX" />
+        <Button type="submit" disabled={saving}>{t('common.save')}</Button>
       </form>
     </AccountLayout>
   )

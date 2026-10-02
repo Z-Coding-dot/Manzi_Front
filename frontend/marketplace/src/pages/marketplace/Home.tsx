@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { PropertyCard } from "@/components/ui/PropertyCard";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { useGetPublishedPropertiesQuery } from "@/services/marketplaceApi";
+import { useGetPublishedPropertiesQuery, useGetCmsBannersQuery } from "@/services/marketplaceApi";
 
 const CATEGORY_ICONS: Record<string, typeof Building2> = {
   hotel: Building2,
@@ -27,7 +27,8 @@ const CATEGORY_ICONS: Record<string, typeof Building2> = {
 };
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { data: banners = [] } = useGetCmsBannersQuery(i18n.language);
   const { data: properties = [], isLoading } = useGetPublishedPropertiesQuery();
   const featured = properties.filter((p) => p.rating >= 4.5).slice(0, 4);
   const categories = [
@@ -60,7 +61,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.05 }}
             className="font-display mt-3 max-w-2xl text-4xl leading-tight text-white sm:text-5xl"
           >
-            {t("home.heroTitle")}
+            {banners[0]?.title ?? t("home.heroTitle")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
@@ -68,7 +69,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-4 max-w-xl text-base text-white/80"
           >
-            {t("home.heroSubtitle")}
+            {banners[0]?.body ?? t("home.heroSubtitle")}
           </motion.p>
         </div>
         <motion.div
