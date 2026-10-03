@@ -43,7 +43,7 @@ export class PropertiesService {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const where = ADMIN_ROLES.includes(user.role) ? {} : { OR: [{ ownerId: user.sub }, { staff: { some: { userId: user.sub, status: 'active' as const } } }] };
+    const where = (ADMIN_ROLES.includes(user.role) || user.role === 'verification_agent') ? {} : { OR: [{ ownerId: user.sub }, { staff: { some: { userId: user.sub, status: 'active' as const } } }] };
     return this.prisma.property.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -224,8 +224,8 @@ export class PropertiesService {
     user: AuthenticatedUser,
     notes?: string,
   ) {
-    if (!ADMIN_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Only admins can review properties');
+    if (!ADMIN_ROLES.includes(user.role) && user.role !== 'verification_agent') {
+      throw new ForbiddenException('Only verification staff can review properties');
     }
 
     return this.prisma.$transaction(async tx => {

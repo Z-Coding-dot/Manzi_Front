@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -33,8 +34,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-forest text-xs font-bold text-white">M</div>
-              <span className="font-display text-base text-ink">{t('app.name')}</span>
+              <BrandLogo />
             </div>
             <p className="mt-2 text-sm text-muted">{t('app.tagline')}</p>
           </div>

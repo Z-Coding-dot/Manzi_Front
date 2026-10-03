@@ -24,7 +24,21 @@
     "loading": "Loading",
     "noResults": "No results found",
     "verified": "Verified",
-    "currency": "AFN"
+    "currency": "AFN",
+    "save": "Save changes",
+    "saved": "Saved",
+    "retry": "Try again",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "menu": "Open navigation menu",
+    "backSearch": "Back to search",
+    "saveProperty": "Save property",
+    "unsaveProperty": "Remove from saved stays",
+    "stayCount": "{{count}} stays",
+    "stayCount_one": "{{count}} stay",
+    "stayCount_other": "{{count}} stays",
+    "scrollToTop": "Scroll to top"
   },
   "home": {
     "heroEyebrow": "Kabul, Afghanistan",
@@ -78,7 +92,9 @@
     "sortPopular": "Most popular",
     "mapView": "Map",
     "listView": "List",
-    "clearFilters": "Clear filters"
+    "clearFilters": "Clear filters",
+    "type": "Property type",
+    "any": "Any rating"
   },
   "property": {
     "verifiedProperty": "Verified property",
@@ -115,7 +131,13 @@
     "haveAccount": "Already have an account?",
     "signUpLink": "Sign up",
     "signInLink": "Sign in",
-    "rememberMe": "Remember me"
+    "rememberMe": "Remember me",
+    "loginError": "Unable to sign in. Check your email and password.",
+    "registerError": "Unable to create your account. Check the details and try again.",
+    "afghanistan": "Afghanistan",
+    "other": "Other",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "account": {
     "dashboard": "Dashboard",
@@ -131,7 +153,8 @@
     "noSaved": "You haven't saved any properties yet",
     "cancelReservation": "Cancel reservation",
     "cancelled": "Cancelled",
-    "viewProperty": "View property"
+    "viewProperty": "View property",
+    "preferredCurrency": "Preferred currency"
   },
   "booking": {
     "title": "Reserve your stay",
@@ -151,7 +174,8 @@
     "confirmedTitle": "Reservation confirmed",
     "confirmedBody": "A confirmation has been sent to your email and phone.",
     "backToAccount": "Go to my reservations",
-    "saveError": "Unable to save your booking. Check availability and try again."
+    "saveError": "Unable to save your booking. Check availability and try again.",
+    "cash": "Cash on arrival"
   },
   "footer": {
     "about": "About",
@@ -165,6 +189,260 @@
   },
   "cms": {
     "retry": "Try again",
-    "unavailable": "This page is not published in this language yet."
+    "unavailable": "This page is not published in this language yet.",
+    "unavailableBody": "Please try again shortly, or explore our help and contact pages."
+  },
+  "errors": {
+    "notFound": "A little off the beaten path",
+    "notFoundBody": "We could not find this page. Your next stay is still waiting — let’s find your way home.",
+    "backHome": "Back to home",
+    "propertyNotFound": "Property not found",
+    "roomNotFound": "Room not found"
+  },
+  "journey": {
+    "eyebrow": "YOUR NEXT STAY, MADE SIMPLE",
+    "subtitle": "From your first search to your arrival, find the right place in three clear steps."
+  },
+  "owners": {
+    "eyebrow": "MANZIL FOR PROPERTY OWNERS",
+    "title": "Give your property a new beginning.",
+    "subtitle": "Bring your Kabul property online, introduce your rooms, and welcome travelers through Manzil.",
+    "start": "Start provider onboarding",
+    "dashboard": "Open the Provider dashboard",
+    "stepsTitle": "From your front door to your first guest",
+    "stepsSubtitle": "A simple guided setup. Tell your story, prepare your rooms, and submit your property for review.",
+    "step1Title": "Create your owner account",
+    "step1Body": "Sign up in Manzil Provider and introduce your hotel, hostel, guesthouse or dormitory.",
+    "step2Title": "Make your rooms shine",
+    "step2Body": "Add photos, room or bed availability, prices, amenities and house policies in your dashboard.",
+    "step3Title": "Submit for verification",
+    "step3Body": "Our team reviews your property. Once approved for publication, travelers can discover your listing.",
+    "verification": "Your property appears on the marketplace after verification and approval for publication. Keep photos, prices and availability up to date.",
+    "benefit1Title": "Reach travelers looking for a stay",
+    "benefit1Body": "Show your property to travelers, students and business guests exploring Kabul.",
+    "benefit2Title": "Build trust from the start",
+    "benefit2Body": "Clear photos, property details and verification help guests choose with confidence.",
+    "benefit3Title": "Keep your daily work moving",
+    "benefit3Body": "Use the Provider dashboard to manage operations, with offline support when your connection is interrupted.",
+    "benefit4Title": "See your business clearly",
+    "benefit4Body": "Keep rooms, reservations and reports together in one property dashboard."
+  },
+  "gallery": {
+    "photo": "{{name}} — photo {{count}}",
+    "expand": "Open full-screen photos",
+    "viewAll": "View photos ({{count}})",
+    "thumbnails": "Choose a property photo",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "counter": "{{current}} of {{total}}"
+  },
+  "map": {
+    "title": "Find your place in Kabul",
+    "subtitle": "Explore neighborhoods, select a price pin, and find a stay close to the places that matter to you.",
+    "showProperty": "Show {{name}} on the map",
+    "tileError": "Map tiles could not load. Check your connection; you can still browse the property list.",
+    "loadError": "We could not load stays. Please try again."
+  },
+  "stays": {
+    "title": "Find a stay that fits you",
+    "inArea": "Stays in {{area}}",
+    "emptyArea": "No stays in this area yet"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "checked_in": "Checked in",
+    "checked_out": "Checked out",
+    "no_show": "No show",
+    "draft": "Draft",
+    "payment_pending": "Awaiting payment",
+    "expired": "Expired",
+    "refunded": "Refunded",
+    "failed": "Failed"
+  },
+  "pages": {
+    "about": {
+      "title": "A warmer welcome to Kabul",
+      "intro": "Manzil helps travelers discover places to stay and helps local property owners introduce what makes their place special.",
+      "sections": [
+        {
+          "title": "A place for every journey",
+          "body": "Explore hotels, hostels, guesthouses, apartments and dormitories across Kabul. Compare location, photos, available rooms and prices before choosing your stay."
+        },
+        {
+          "title": "Local languages, clearer choices",
+          "body": "Use Manzil in English, Dari or Pashto. Our marketplace brings property information into one place so you can make a more informed choice."
+        },
+        {
+          "title": "What verification means",
+          "body": "A verified badge indicates that a property has completed Manzil’s review process. Read the listing, policies and guest feedback as well; verification does not guarantee every part of a stay."
+        },
+        {
+          "title": "For property owners",
+          "body": "Want to list your property? Open “List your property” and follow the steps to create a Provider account, add rooms and submit your listing for review."
+        }
+      ]
+    },
+    "help": {
+      "title": "A little help for your journey",
+      "intro": "Find answers before you book, while preparing for your stay, or when managing a reservation.",
+      "sections": [
+        {
+          "title": "How do I find a stay?",
+          "body": "Search by neighborhood or property name. Filter by property type, rating and verification, then open a listing to compare photos, rooms, prices and policies. The map helps you explore the location."
+        },
+        {
+          "title": "How do reservations work?",
+          "body": "Choose an available room, enter your dates and guest details, review the total, and confirm while signed in. Follow the payment method shown during booking. You can find your reservation in My account → My reservations."
+        },
+        {
+          "title": "Can I cancel a reservation?",
+          "body": "Open My reservations to see whether cancellation is available. Review the property’s cancellation policy before cancelling. Fees and refund eligibility depend on the conditions of your reservation."
+        },
+        {
+          "title": "Need help with arrival or an account?",
+          "body": "For directions, check-in or on-site needs, use the contact details on your property listing or booking confirmation. For an account issue, visit Contact and include the information listed there. Never share your password or a one-time code."
+        }
+      ]
+    },
+    "contact": {
+      "title": "Let’s find the right help",
+      "intro": "Start with your property for stay-related questions, or prepare your booking details for an account or marketplace issue.",
+      "sections": [
+        {
+          "title": "Contact your property",
+          "body": "For directions, arrival times, room requests, lost items or a problem during your stay, use the property contact information in your booking confirmation. Your property is best placed to answer questions about its rooms and services."
+        },
+        {
+          "title": "Account and booking questions",
+          "body": "Review Help and My reservations first. Keep your reservation reference, property name, travel dates and a short description of the issue ready. Do not include your password, payment card details or verification codes."
+        },
+        {
+          "title": "Property owners",
+          "body": "Use Manzil Provider for property details, room management and onboarding. Start from “List your property” on the marketplace to reach the Provider application."
+        },
+        {
+          "title": "Contact marketplace support",
+          "body": "For account or marketplace questions, email our support team using the link below. Include your reservation reference if relevant, a short description of the issue, and the best way to reach you. Never send passwords or verification codes."
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of using Manzil",
+      "intro": "These terms describe use of the marketplace. Read the property’s own booking and stay conditions before confirming a reservation.",
+      "sections": [
+        {
+          "title": "Your account and information",
+          "body": "Provide accurate contact and guest details and keep your account credentials private. Use the marketplace responsibly and do not submit fraudulent reservations, misleading content or information you do not have permission to share."
+        },
+        {
+          "title": "Listings and reservations",
+          "body": "Property owners supply their listing details, room availability, prices and stay policies. Review these details and the total shown before confirming. A verified badge reflects a review process and is not a guarantee of every amenity or experience."
+        },
+        {
+          "title": "Payments, changes and cancellation",
+          "body": "Follow the payment terms presented during booking. Changes, cancellation fees and refunds depend on the property policy and reservation conditions. Do not assume free cancellation or a refund unless it is expressly included in your booking."
+        },
+        {
+          "title": "Questions and applicable rights",
+          "body": "Raise stay-related concerns with the property and retain your booking records. These terms do not remove rights that cannot be excluded under applicable law. If published terms change, review the version available when making a new reservation."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Your information, handled with care",
+      "intro": "Learn what information is used to provide accounts, property discovery and reservations on Manzil.",
+      "sections": [
+        {
+          "title": "Information you provide",
+          "body": "Account and booking forms ask for information such as your name, email, phone number, language preference, travel dates and guest details. Property owners provide listing information and photos. Submit only information needed for your request."
+        },
+        {
+          "title": "How information is used",
+          "body": "Information is used to authenticate your account, create and manage reservations, communicate booking details, and operate the marketplace. Relevant guest and reservation details are shared with the booked property so it can arrange your stay."
+        },
+        {
+          "title": "Browser storage and maps",
+          "body": "Manzil uses browser storage for your sign-in session and language preference. Saved stays are held in the current app session. The interactive map requests tiles from OpenStreetMap by default; that map service receives network information such as your IP address and requested map area. Clearing browser storage removes locally stored preferences and sessions."
+        },
+        {
+          "title": "Your choices and questions",
+          "body": "You can change your profile and language in My account and manage locally saved stays. For questions about account information, correction or deletion, review the Contact page for available contact channels. Keep your password and verification codes private."
+        }
+      ]
+    },
+    "cancellation-policy": {
+      "title": "Plans change. Know your options.",
+      "intro": "Cancellation conditions are set by each property. Check your specific reservation before making a change.",
+      "sections": [
+        {
+          "title": "Before you book",
+          "body": "Read the property’s policies, cancellation deadline and payment terms. There is no single free-cancellation window for every stay on Manzil. Monthly stays, dormitory beds and special rates may have different conditions."
+        },
+        {
+          "title": "How to cancel",
+          "body": "Sign in and open My account → My reservations. If a cancellation action is available, review your booking conditions before using it. For changes or a cancellation you cannot complete online, contact the property through your booking confirmation."
+        },
+        {
+          "title": "Charges and refunds",
+          "body": "Late cancellations and no-shows may incur charges under the property’s policy. Refund eligibility, amount and timing depend on your reservation, the property and the payment method. Cancelling a reservation does not by itself guarantee or initiate a refund."
+        },
+        {
+          "title": "Keep your confirmation",
+          "body": "Keep your original reservation and any cancellation confirmation. If you have a question about a charge, contact the property with your reservation reference and relevant dates."
+        }
+      ]
+    }
+  },
+  "catalog": {
+    "wi_fi": "Wi-Fi",
+    "air_conditioning": "Air conditioning",
+    "heating": "Heating",
+    "breakfast": "Breakfast",
+    "restaurant": "Restaurant",
+    "parking": "Parking",
+    "kitchen": "Kitchen",
+    "laundry": "Laundry",
+    "hot_water": "Hot water",
+    "private_bathroom": "Private bathroom",
+    "shared_bathroom": "Shared bathroom",
+    "security": "Security",
+    "generator_backup": "Generator backup",
+    "elevator": "Elevator",
+    "airport_transfer": "Airport transfer",
+    "free_wi_fi": "Free Wi-Fi",
+    "breakfast_included": "Breakfast included",
+    "garden": "Garden",
+    "24h_reception": "24h reception",
+    "ac": "AC",
+    "ensuite_bathroom": "Ensuite bathroom",
+    "balcony": "Balcony",
+    "living_area": "Living area",
+    "single": "Single",
+    "double": "Double",
+    "twin": "Twin",
+    "suite": "Suite",
+    "standard_twin": "Standard Twin",
+    "deluxe_double": "Deluxe Double",
+    "family_suite": "Family Suite"
+  },
+  "hero": {
+    "carousel": "Image carousel",
+    "label": "Discover your next stay",
+    "trust": "Verified stays. Local welcome.",
+    "discover": "YOUR JOURNEY STARTS HERE",
+    "controls": "Slideshow controls",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "goTo": "Show slide {{count}}",
+    "play": "Play slideshow",
+    "pause": "Pause slideshow",
+    "slide1Title": "A place to stay. A feeling of home.",
+    "slide1Body": "Discover verified stays across Kabul. Compare rooms, find your neighborhood, and arrive with confidence.",
+    "slide2Title": "Your city. Your pace. Your perfect stay.",
+    "slide2Body": "From a quiet room to a welcoming guesthouse, find a place that fits your plans and your budget.",
+    "slide3Title": "A warmer welcome awaits in Kabul.",
+    "slide3Body": "Travel for work, study or a little time away. Explore local stays in English, Dari and Pashto with Manzil."
   }
 }

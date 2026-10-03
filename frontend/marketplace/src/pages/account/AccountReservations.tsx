@@ -1,3 +1,4 @@
+import { translateCatalog } from '@/utils/translateCatalog';
 import { useTranslation } from 'react-i18next'
 
 import { AccountLayout } from '@/components/layout/AccountLayout'
@@ -32,14 +33,14 @@ export default function AccountReservations() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-medium text-ink">{r.property.name}</p>
-                  <p className="text-sm text-muted">{r.room?.roomType}</p>
+                  <p className="text-sm text-muted">{r.room ? translateCatalog(r.room.roomType, t) : ''}</p>
                   <p className="tabular mt-1 text-sm text-body">
                     {formatDate(r.checkIn, i18n.language)} → {formatDate(r.checkOut, i18n.language)}
                   </p>
                 </div>
                 <div className="text-end">
                   <Badge tone={r.status === 'confirmed' ? 'success' : 'danger'}>
-                    {r.status === 'cancelled' ? t('account.cancelled') : r.status}
+                    {t(`status.${r.status}`, { defaultValue: r.status })}
                   </Badge>
                   <p className="tabular mt-1.5 font-medium text-ink">{formatCurrency(r.total, r.currency, i18n.language)}</p>
                 </div>

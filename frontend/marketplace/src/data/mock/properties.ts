@@ -15,6 +15,7 @@ export interface Property {
   type: AccommodationType
   area: string
   address: string
+  contactPhone?: string | null
   description: string
   rating: number
   reviewsCount: number

@@ -12,10 +12,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+import { StepsSection } from "@/components/ui/StepsSection";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { PropertyCard } from "@/components/ui/PropertyCard";
-import { SearchBar } from "@/components/ui/SearchBar";
-import { useGetPublishedPropertiesQuery, useGetCmsBannersQuery } from "@/services/marketplaceApi";
+import { HeroSlider } from "@/components/ui/HeroSlider";
+import { useGetPublishedPropertiesQuery } from "@/services/marketplaceApi";
 
 const CATEGORY_ICONS: Record<string, typeof Building2> = {
   hotel: Building2,
@@ -27,8 +28,7 @@ const CATEGORY_ICONS: Record<string, typeof Building2> = {
 };
 
 export default function Home() {
-  const { t, i18n } = useTranslation();
-  const { data: banners = [] } = useGetCmsBannersQuery(i18n.language);
+  const { t } = useTranslation();
   const { data: properties = [], isLoading } = useGetPublishedPropertiesQuery();
   const featured = properties.filter((p) => p.rating >= 4.5).slice(0, 4);
   const categories = [
@@ -43,44 +43,7 @@ export default function Home() {
 
   return (
     <PublicLayout>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-forest">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_45%)]" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 sm:pb-28 sm:pt-20">
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-sm font-medium tracking-wide text-white/70"
-          >
-            {t("home.heroEyebrow")}
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="font-display mt-3 max-w-2xl text-4xl leading-tight text-white sm:text-5xl"
-          >
-            {banners[0]?.title ?? t("home.heroTitle")}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-4 max-w-xl text-base text-white/80"
-          >
-            {banners[0]?.body ?? t("home.heroSubtitle")}
-          </motion.p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="relative mx-auto -mt-12 mb-3 max-w-5xl px-4 sm:px-6"
-        >
-          <SearchBar />
-        </motion.div>
-      </section>
+      <HeroSlider />
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -146,7 +109,7 @@ export default function Home() {
                       <div className="absolute inset-x-0 bottom-0 p-3">
                         <p className="font-medium text-white">{area}</p>
                         <p className="text-xs text-white/75">
-                          {count} {count === 1 ? "stay" : "stays"}
+                          {t("common.stayCount", { count })}
                         </p>
                       </div>
                     </div>
@@ -177,33 +140,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="bg-paper py-16">
-        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-          <h2>{t("home.howItWorksTitle")}</h2>
-          <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {[1, 2, 3].map((step, i) => (
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: i * 0.08 }}
-              >
-                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-forest text-sm font-semibold text-white">
-                  {step}
-                </div>
-                <h3 className="mt-4 text-base">
-                  {t(`home.howItWorksStep${step}Title`)}
-                </h3>
-                <p className="mt-2 text-sm text-muted">
-                  {t(`home.howItWorksStep${step}Body`)}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StepsSection />
 
       {/* Why use Manzil / trust */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">

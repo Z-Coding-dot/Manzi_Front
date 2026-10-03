@@ -208,6 +208,9 @@ model User {
   email        String?    @unique
   phone        String?    @unique
   passwordHash String     @map("password_hash")
+  avatar       String?
+  tokenVersion Int        @default(0) @map("token_version")
+  consolePreferences Json @default("{}") @map("console_preferences")
   role         UserRole
   language     Language   @default(en)
   currency     Currency   @default(AFN)
@@ -718,4 +721,12 @@ model SyncOperation {
 
   @@index([deviceId, status])
   @@map("sync_operations")
+}
+
+model WebsiteView {
+ day DateTime @db.Date
+ path String @db.VarChar(80)
+ views BigInt @default(0)
+ @@id([day, path])
+ @@map("website_views")
 }

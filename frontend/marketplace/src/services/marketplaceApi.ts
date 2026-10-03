@@ -54,6 +54,7 @@ function mapProperty(property: BackendProperty): MarketplaceProperty {
     type: property.type,
     area: property.district,
     address: property.address,
+    contactPhone: property.phone,
     description: property.description ?? "",
     rating: property.rating,
     reviewsCount: property._count.reviews,

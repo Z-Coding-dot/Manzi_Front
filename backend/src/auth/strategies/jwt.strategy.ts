@@ -9,6 +9,7 @@ import type { AuthenticatedUser } from '../../common/types/authenticated-user.js
 interface AccessTokenPayload {
   sub: string;
   role: string;
+  ver?: number;
 }
 
 @Injectable()
@@ -31,7 +32,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
-    if (!user || user.status !== 'active') {
+    if (
+      !user ||
+      user.status !== 'active' ||
+      (payload.ver ?? 0) !== user.tokenVersion
+    ) {
       throw new UnauthorizedException('Account is no longer active');
     }
 

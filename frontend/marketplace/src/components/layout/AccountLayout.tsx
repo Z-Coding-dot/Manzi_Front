@@ -53,7 +53,7 @@ export function AccountLayout({ children }: { children: ReactNode }) {
               {t('account.logout')}
             </button>
           </aside>
-          <div>{children}</div>
+          <div className="min-w-0">{children}</div>
         </div>
       </div>
     </PublicLayout>

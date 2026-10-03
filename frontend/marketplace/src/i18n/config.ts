@@ -38,3 +38,14 @@ i18n
   })
 
 export default i18n
+
+// Apply the persisted language on the first render as well as later switches.
+function syncDocumentLanguage() {
+  const language = i18n.resolvedLanguage || i18n.language || 'en'
+  document.documentElement.lang = language
+  document.documentElement.dir = getDirection(language)
+}
+if (typeof document !== 'undefined') {
+  i18n.on('languageChanged', syncDocumentLanguage)
+  syncDocumentLanguage()
+}

@@ -61,7 +61,13 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.issueTokenPair(user.id, user.role);
+    const tokens = await this.issueTokenPair(
+      user.id,
+      user.role,
+      undefined,
+      undefined,
+      user.tokenVersion,
+    );
     return { user: this.toPublicUser(user), ...tokens };
   }
 
@@ -86,7 +92,13 @@ export class AuthService {
       throw new UnauthorizedException('Account is not active');
     }
 
-    const tokens = await this.issueTokenPair(user.id, user.role, meta);
+    const tokens = await this.issueTokenPair(
+      user.id,
+      user.role,
+      meta,
+      undefined,
+      user.tokenVersion,
+    );
     return { user: this.toPublicUser(user), ...tokens };
   }
 
@@ -101,32 +113,43 @@ export class AuthService {
     }
 
     const tokenHash = hashToken(refreshToken);
-    return this.prisma.$transaction(async tx => {
-    await tx.$queryRaw`SELECT id FROM refresh_tokens WHERE token_hash = ${tokenHash} FOR UPDATE`;
-    const stored = await tx.refreshToken.findUnique({
-      where: { tokenHash },
-    });
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM refresh_tokens WHERE token_hash = ${tokenHash} FOR UPDATE`;
+      const stored = await tx.refreshToken.findUnique({
+        where: { tokenHash },
+      });
 
-    if (!stored || stored.userId !== payload.sub || stored.revokedAt || stored.expiresAt < new Date()) {
-      throw new UnauthorizedException('Refresh token is no longer valid');
-    }
+      if (
+        !stored ||
+        stored.userId !== payload.sub ||
+        stored.revokedAt ||
+        stored.expiresAt < new Date()
+      ) {
+        throw new UnauthorizedException('Refresh token is no longer valid');
+      }
 
-    const user = await tx.user.findUnique({
-      where: { id: payload.sub },
-    });
-    if (!user || user.status !== 'active') {
-      throw new UnauthorizedException('Account is no longer active');
-    }
+      const user = await tx.user.findUnique({
+        where: { id: payload.sub },
+      });
+      if (!user || user.status !== 'active') {
+        throw new UnauthorizedException('Account is no longer active');
+      }
 
-    // Rotation: the old token is revoked and replaced atomically, so a
-    // stolen-and-reused old refresh token fails on its next use.
-    const tokens = await this.issueTokenPair(user.id, user.role, undefined, tx);
-    await tx.refreshToken.update({
-      where: { id: stored.id },
-      data: { revokedAt: new Date() },
-    });
+      // Rotation: the old token is revoked and replaced atomically, so a
+      // stolen-and-reused old refresh token fails on its next use.
+      const tokens = await this.issueTokenPair(
+        user.id,
+        user.role,
+        undefined,
+        tx,
+        user.tokenVersion,
+      );
+      await tx.refreshToken.update({
+        where: { id: stored.id },
+        data: { revokedAt: new Date() },
+      });
 
-    return { user: this.toPublicUser(user), ...tokens };
+      return { user: this.toPublicUser(user), ...tokens };
     });
   }
 
@@ -143,10 +166,26 @@ export class AuthService {
     userId: string,
     role: string,
     meta?: { ipAddress?: string; deviceLabel?: string },
-    tx: Prisma.TransactionClient = this.prisma,
+    tx?: Prisma.TransactionClient,
+    expectedVersion?: number,
   ): Promise<TokenPair> {
+    if (!tx)
+      return this.prisma.$transaction((transaction) =>
+        this.issueTokenPair(userId, role, meta, transaction, expectedVersion),
+      );
+    // Lock the account while issuing tokens so password changes cannot race issuance.
+    await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
+    const account = await tx.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { tokenVersion: true },
+    });
+    if (
+      expectedVersion !== undefined &&
+      account.tokenVersion !== expectedVersion
+    )
+      throw new UnauthorizedException('Credentials changed; sign in again');
     const accessToken = await this.jwt.signAsync(
-      { sub: userId, role },
+      { sub: userId, role, ver: account.tokenVersion },
       {
         secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
         expiresIn: asExpiry(
@@ -185,6 +224,8 @@ export class AuthService {
     email: string | null;
     role: string;
     language: string;
+    avatar: string | null;
+    consolePreferences: Prisma.JsonValue;
   }) {
     return {
       id: user.id,
@@ -192,6 +233,8 @@ export class AuthService {
       email: user.email,
       role: user.role,
       language: user.language,
+      avatar: user.avatar,
+      consolePreferences: user.consolePreferences,
     };
   }
 }

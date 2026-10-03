@@ -20,16 +20,16 @@ export class OperationsController {
   @Get('properties/:id/payments') @Roles('property_owner', 'property_manager', 'receptionist', 'admin', 'super_admin') propertyPayments(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.propertyPayments(id, u); }
   @Get('reservations/:id/payments') payments(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.payments(id, u); }
   @Post('reservations/:id/payments') @Roles('property_owner', 'property_manager', 'receptionist', 'admin', 'super_admin') cashPayment(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(CashPaymentDto) dto: CashPaymentDto, @CurrentUser() u: AuthenticatedUser) { return this.service.cashPayment(id, dto, u); }
-  @Get('payouts') @Roles('property_owner', 'admin', 'super_admin') payouts(@CurrentUser() u: AuthenticatedUser) { return this.service.payouts(u); }
+  @Get('payouts') @Roles('property_owner', 'admin', 'super_admin', 'finance_agent') payouts(@CurrentUser() u: AuthenticatedUser) { return this.service.payouts(u); }
   @Post('payouts') @Roles('admin', 'super_admin') createPayout(@ValidatedBody(PayoutDto) dto: PayoutDto, @CurrentUser() u: AuthenticatedUser) { return this.service.createPayout(dto, u); }
-  @Post('payouts/:id/approve') @Roles('admin', 'super_admin') approve(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.payoutDecision(id, true, u); }
-  @Post('payouts/:id/reject') @Roles('admin', 'super_admin') reject(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.payoutDecision(id, false, u); }
-  @Get('support-tickets') tickets(@CurrentUser() u: AuthenticatedUser) { return this.service.tickets(u); }
+  @Post('payouts/:id/approve') @Roles('admin', 'super_admin', 'finance_agent') approve(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.payoutDecision(id, true, u); }
+  @Post('payouts/:id/reject') @Roles('admin', 'super_admin', 'finance_agent') reject(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.payoutDecision(id, false, u); }
+  @Get('support-tickets') @Roles('customer', 'property_owner', 'property_manager', 'receptionist', 'property_staff', 'admin', 'super_admin', 'support_agent') tickets(@CurrentUser() u: AuthenticatedUser) { return this.service.tickets(u); }
   @Post('support-tickets') createTicket(@ValidatedBody(TicketDto) dto: TicketDto, @CurrentUser() u: AuthenticatedUser) { return this.service.createTicket(dto, u); }
-  @Patch('support-tickets/:id') @Roles('admin', 'super_admin') updateTicket(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(TicketUpdateDto) dto: TicketUpdateDto, @CurrentUser() u: AuthenticatedUser) { return this.service.updateTicket(id, dto, u); }
-  @Get('admin/reviews') @Roles('admin', 'super_admin') reviews() { return this.service.reviews(); }
+  @Patch('support-tickets/:id') @Roles('admin', 'super_admin', 'support_agent') updateTicket(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(TicketUpdateDto) dto: TicketUpdateDto, @CurrentUser() u: AuthenticatedUser) { return this.service.updateTicket(id, dto, u); }
+  @Get('admin/reviews') @Roles('admin', 'super_admin', 'support_agent') reviews() { return this.service.reviews(); }
   @Post('reservations/:id/reviews') @Roles('customer') createReview(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(ReviewDto) dto: ReviewDto, @CurrentUser() u: AuthenticatedUser) { return this.service.createReview(id, dto, u); }
-  @Patch('admin/reviews/:id') @Roles('admin', 'super_admin') moderate(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(ModerateReviewDto) dto: ModerateReviewDto, @CurrentUser() u: AuthenticatedUser) { return this.service.moderateReview(id, dto.status, u); }
+  @Patch('admin/reviews/:id') @Roles('admin', 'super_admin', 'support_agent') moderate(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(ModerateReviewDto) dto: ModerateReviewDto, @CurrentUser() u: AuthenticatedUser) { return this.service.moderateReview(id, dto.status, u); }
   @Patch('reviews/:id/response') @Roles('property_owner', 'admin', 'super_admin') response(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(ReviewResponseDto) dto: ReviewResponseDto, @CurrentUser() u: AuthenticatedUser) { return this.service.respondReview(id, dto.ownerResponse, u); }
 }
 

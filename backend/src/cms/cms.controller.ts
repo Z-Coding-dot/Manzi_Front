@@ -18,13 +18,13 @@ export class PublicCmsController {
 }
 @Controller('admin/cms')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'super_admin')
+@Roles('admin', 'super_admin', 'content_manager')
 export class AdminCmsController {
   constructor(@Inject(CmsService) private readonly service: CmsService) {}
   @Get('pages') pages() { return this.service.list('pages'); }
   @Get('banners') banners() { return this.service.list('banners'); }
   @Get('posts') posts() { return this.service.list('posts'); }
-  @Get('settings') settings() { return this.service.list('settings'); }
+  @Get('settings') @Roles('admin', 'super_admin') settings() { return this.service.list('settings'); }
   @Post('pages') createPage(@ValidatedBody(PageDto) dto: PageDto, @CurrentUser() u: AuthenticatedUser) { return this.service.savePage(dto, u.sub); }
   @Patch('pages/:id') updatePage(@Param('id', ParseUUIDPipe) id: string, @ValidatedBody(PageDto) dto: PageDto, @CurrentUser() u: AuthenticatedUser) { return this.service.savePage(dto, u.sub, id); }
   @Delete('pages/:id') deletePage(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() u: AuthenticatedUser) { return this.service.remove('pages', id, u.sub); }

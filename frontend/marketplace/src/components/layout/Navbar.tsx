@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -25,11 +26,10 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-forest text-sm font-bold text-white">M</div>
-          <span className="font-display text-lg text-ink">{t('app.name')}</span>
+          <BrandLogo />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -44,7 +44,7 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <LanguageSwitcher />
           <Link to="/for-property-owners" className="px-3 text-sm font-medium text-body hover:text-ink">
             {t('nav.forProperties')}
@@ -64,13 +64,13 @@ export function Navbar() {
           )}
         </div>
 
-        <button className="text-body md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
+        <button className="text-body lg:hidden" onClick={() => setOpen((o) => !o)} aria-label={t("common.menu")} aria-expanded={open}>
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-line bg-surface px-4 py-3 md:hidden">
+        <div className="border-t border-line bg-surface px-4 py-3 lg:hidden">
           <nav className="flex flex-col gap-1">
             {LINKS.map((link) => (
               <NavLink

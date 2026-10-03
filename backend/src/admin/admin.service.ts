@@ -78,18 +78,9 @@ export class AdminService {
     },
     actor: AuthenticatedUser,
   ) {
-    if (
-      actor.role !== 'super_admin' &&
-      ![
-        'customer',
-        'property_owner',
-        'property_manager',
-        'receptionist',
-        'property_staff',
-      ].includes(data.role)
-    )
+    if (actor.role !== 'super_admin' && data.role === 'super_admin')
       throw new ForbiddenException(
-        'Super administrator required to create platform staff',
+        'Only the platform owner can assign owner access',
       );
     if (Buffer.byteLength(data.password, 'utf8') > 72)
       throw new BadRequestException('Password must not exceed 72 bytes');
@@ -160,22 +151,43 @@ export class AdminService {
         'Use another administrator to change your own access',
       );
     return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(734291)`;
       const user = await tx.user.findUnique({ where: { id } });
       if (!user) throw new NotFoundException('User not found');
       if (
         actor.role !== 'super_admin' &&
-        (data.role || ['admin', 'super_admin'].includes(user.role))
+        (data.role === 'super_admin' ||
+          ['admin', 'super_admin'].includes(user.role))
       )
-        throw new ForbiddenException('Super administrator required');
+        throw new ForbiddenException(
+          'Only the platform owner can change administrators or owner access',
+        );
+      if (
+        user.role === 'super_admin' &&
+        ((data.role && data.role !== 'super_admin') ||
+          (data.status && data.status !== 'active'))
+      ) {
+        const owners = await tx.user.count({
+          where: { role: 'super_admin', status: 'active' },
+        });
+        if (owners <= 1 && user.status === 'active')
+          throw new BadRequestException(
+            'The platform must retain an active owner',
+          );
+      }
       const updated = await tx.user.update({
         where: { id },
-        data,
+        data: {
+          ...data,
+          ...(data.email ? { email: data.email.trim().toLowerCase() } : {}),
+        },
         select: { id: true, name: true, email: true, role: true, status: true },
       });
-      await tx.refreshToken.updateMany({
-        where: { userId: id, revokedAt: null },
-        data: { revokedAt: new Date() },
-      });
+      if (data.status && data.status !== 'active')
+        await tx.refreshToken.updateMany({
+          where: { userId: id, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
       await tx.auditLog.create({
         data: {
           actorId: actor.sub,

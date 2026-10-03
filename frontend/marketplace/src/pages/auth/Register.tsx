@@ -57,7 +57,7 @@ export default function Register() {
       navigate("/account");
     } catch {
       setError(
-        "Unable to create your account. Check the details and try again.",
+        t("auth.registerError"),
       );
     } finally {
       setLoading(false);
@@ -92,10 +92,10 @@ export default function Register() {
             required
           />
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <SelectField label={t("auth.country")} defaultValue="Afghanistan">
-            <option>Afghanistan</option>
-            <option>Other</option>
+            <option value="Afghanistan">{t("auth.afghanistan")}</option>
+            <option value="Other">{t("auth.other")}</option>
           </SelectField>
           <SelectField
             label={t("auth.preferredLanguage")}

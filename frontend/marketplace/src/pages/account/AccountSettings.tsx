@@ -27,7 +27,7 @@ export default function AccountSettings() {
             </option>
           ))}
         </SelectField>
-        <SelectField label="Preferred currency" value={currency} onChange={(e) => setCurrency(e.target.value as 'AFN' | 'USD')}>
+        <SelectField label={t('account.preferredCurrency')} value={currency} onChange={(e) => setCurrency(e.target.value as 'AFN' | 'USD')}>
           <option value="AFN">AFN</option>
           <option value="USD">USD</option>
         </SelectField>

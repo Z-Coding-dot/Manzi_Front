@@ -29,8 +29,9 @@ describe('Admin access boundaries', () => {
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
-  it('requires a super administrator to grant roles', async () => {
+  it('requires a platform owner to grant owner access', async () => {
     const tx = {
+      $queryRaw: vi.fn(),
       user: { findUnique: vi.fn().mockResolvedValue({ role: 'customer' }) },
     };
     const prisma = {
@@ -39,7 +40,7 @@ describe('Admin access boundaries', () => {
     await expect(
       new AdminService(prisma as unknown as PrismaService).updateUser(
         'target',
-        { role: 'admin' },
+        { role: 'super_admin' },
         actor,
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
@@ -51,14 +52,14 @@ describe('Admin access boundaries', () => {
     expect(select.passwordHash).toBeUndefined();
     expect(select.refreshTokens).toBeUndefined();
   });
-  it('prevents ordinary administrators creating platform administrators', async () => {
+  it('prevents ordinary administrators creating platform owners', async () => {
     await expect(
       new AdminService({} as PrismaService).createUser(
         {
           name: 'Test',
           email: 'test@example.com',
           password: 'test-password',
-          role: 'admin',
+          role: 'super_admin',
         },
         actor,
       ),
@@ -66,16 +67,15 @@ describe('Admin access boundaries', () => {
   });
   it('stores a password hash and audits newly created owner accounts without exposing credentials', async () => {
     const tx = {
+      $queryRaw: vi.fn(),
       user: {
-        create: vi
-          .fn()
-          .mockResolvedValue({
-            id: 'new-owner',
-            name: 'Test',
-            email: 'test@example.com',
-            role: 'property_owner',
-            status: 'active',
-          }),
+        create: vi.fn().mockResolvedValue({
+          id: 'new-owner',
+          name: 'Test',
+          email: 'test@example.com',
+          role: 'property_owner',
+          status: 'active',
+        }),
       },
       auditLog: { create: vi.fn() },
     };

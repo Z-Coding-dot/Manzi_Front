@@ -38,8 +38,9 @@ export function PropertyCard({
             e.preventDefault();
             dispatch(toggleSaved(property.id));
           }}
-          aria-label="Save property"
-          className="absolute end-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm hover:bg-white"
+          aria-label={t(isSaved ? "common.unsaveProperty" : "common.saveProperty")}
+          aria-pressed={isSaved}
+          className="absolute end-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-forest/25 bg-white text-ink shadow-md hover:bg-forest-soft"
         >
           <Heart
             className={cn(
@@ -62,8 +63,8 @@ export function PropertyCard({
             />
             {property.verified && (
               <Badge
-                tone="onDark"
-                className="absolute start-3 top-3 backdrop-blur-sm"
+                tone="success"
+                className="absolute start-3 top-3 border-forest/25 bg-white text-forest-deep shadow-md"
               >
                 {t("common.verified")}
               </Badge>

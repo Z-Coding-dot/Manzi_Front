@@ -51,7 +51,7 @@ export default function Login() {
       );
       navigate("/account");
     } catch {
-      setError("Unable to sign in. Check your email and password.");
+      setError(t("auth.loginError"));
     } finally {
       setLoading(false);
     }

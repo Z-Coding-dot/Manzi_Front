@@ -32,7 +32,7 @@ export default function AccountProfile() {
         {saved && (
           <span className="flex items-center gap-1.5 text-sm text-forest">
             <CheckCircle2 className="h-4 w-4" />
-            Saved
+            {t('common.saved')}
           </span>
         )}
       </div>

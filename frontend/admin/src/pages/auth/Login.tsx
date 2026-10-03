@@ -1,9 +1,10 @@
+import BrandLogo from "../../components/BrandLogo";
 import { saveSession } from "@/api/session";
 import { motion } from "framer-motion";
 import { Shield } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -14,10 +15,13 @@ import { useAppDispatch } from "@/redux/hooks";
 import { loginSuccess, type AuthUser } from "@/redux/slices/authSlice";
 import { getDirection } from "@/i18n/config";
 
+import { platformRoles, homeFor } from "../../access";
+
 export default function Login() {
   const { t, i18n } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
@@ -29,14 +33,14 @@ export default function Login() {
     const values = new FormData(e.currentTarget);
     try {
       const { data } = await httpClient.post<{
-        user: AuthUser;
+        user: AuthUser & { language?: string };
         accessToken: string;
         refreshToken: string;
       }>("/auth/login", {
         email: values.get("email"),
         password: values.get("password"),
       });
-      if (!["admin", "super_admin"].includes(data.user.role)) {
+      if (!platformRoles.includes(data.user.role)) {
         await httpClient.post("/auth/logout", {
           refreshToken: data.refreshToken,
         });
@@ -45,7 +49,9 @@ export default function Login() {
       }
       saveSession(data.accessToken, data.refreshToken, rememberMe);
       dispatch(loginSuccess({ ...data.user, propertyName: "" }));
-      navigate("/");
+      if (data.user.language)
+        await i18n.changeLanguage(data.user.language.replace("_", "-"));
+      navigate(homeFor(data.user.role));
     } catch {
       setError(t("admin.loginError"));
     } finally {
@@ -68,11 +74,8 @@ export default function Login() {
           className="absolute -bottom-48 -start-20 h-[36rem] w-[36rem] rounded-full bg-forest-deep/40"
         />
         <div className="relative flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 text-xl font-semibold text-white">
-            M
-          </span>
-          <span className="text-xl font-semibold text-white">
-            {t("app.name")}
+          <span className="text-white">
+            <BrandLogo />
           </span>
         </div>
         <div className="relative max-w-lg space-y-6">
@@ -94,7 +97,7 @@ export default function Login() {
       <section className="flex min-h-screen flex-col">
         <header className="flex items-center justify-between gap-4 px-6 py-6 sm:px-10">
           <div className="flex items-center gap-2 text-sm font-semibold text-forest">
-            <Shield className="h-5 w-5" />
+            <BrandLogo compact />
             {t("admin.console")}
           </div>
           <LanguageSwitcher />
@@ -117,6 +120,15 @@ export default function Login() {
                 {t("admin.loginSubtitle")}
               </p>
             </div>
+            {new URLSearchParams(location.search).get("reason") ===
+              "passwordChanged" && (
+              <p
+                role="status"
+                className="mb-5 rounded-xl bg-forest-soft p-4 text-sm leading-relaxed text-forest"
+              >
+                {t("adminConsole.passwordChanged")}
+              </p>
+            )}
             <form onSubmit={(e) => void submit(e)} className="space-y-5">
               <Field
                 label={t("admin.email")}

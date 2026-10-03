@@ -15,7 +15,7 @@ export default function Stays() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <h1 className="text-2xl text-ink">Browse stays by type</h1>
+        <h1 className="text-2xl text-ink">{t('stays.title')}</h1>
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TYPES.map((type) => {
             const props = publishedProperties.filter((p) => p.type === type)
@@ -35,7 +35,7 @@ export default function Stays() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-4">
                     <p className="font-medium text-white">{t(`categories.${type}`)}</p>
-                    <p className="text-xs text-white/75">{props.length} {props.length === 1 ? 'stay' : 'stays'}</p>
+                    <p className="text-xs text-white/75">{t('common.stayCount', { count: props.length })}</p>
                   </div>
                 </div>
               </Link>

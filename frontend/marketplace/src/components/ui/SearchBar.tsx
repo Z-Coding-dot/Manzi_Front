@@ -29,20 +29,21 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
       onSubmit={handleSubmit}
       className={
         compact
-          ? 'flex flex-col gap-2 rounded-xl border border-line bg-surface p-2 shadow-sm sm:flex-row sm:items-center'
-          : 'flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-xl sm:flex-row sm:items-center'
+          ? 'flex flex-col gap-2 rounded-xl border border-line bg-surface p-2 shadow-sm lg:flex-row lg:items-center'
+          : 'flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-xl lg:flex-row lg:items-center'
       }
     >
-      <div className="flex flex-1 items-center gap-2 rounded-lg px-3 py-2.5 sm:border-e sm:border-line">
+      <div className="flex flex-1 items-center gap-2 rounded-lg px-3 py-2.5 lg:border-e lg:border-line">
         <MapPin className="h-4 w-4 shrink-0 text-muted" />
         <input
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder={t('home.locationPlaceholder')}
+          aria-label={t('home.location')}
           className="w-full min-w-0 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
         />
       </div>
-      <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 sm:border-e sm:border-line">
+      <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 lg:border-e lg:border-line">
         <input
           type="date"
           value={checkIn}
@@ -51,7 +52,7 @@ export function SearchBar({ compact = false }: { compact?: boolean }) {
           aria-label={t('home.checkIn')}
         />
       </div>
-      <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 sm:border-e sm:border-line">
+      <div className="flex items-center gap-2 rounded-lg px-3 py-2.5 lg:border-e lg:border-line">
         <input
           type="date"
           value={checkOut}

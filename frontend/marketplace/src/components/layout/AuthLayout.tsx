@@ -1,3 +1,5 @@
+import { BrandLogo } from '@/components/ui/BrandLogo'
+import { AnimatedContent } from './AnimatedContent'
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,8 +16,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     <div className="grid min-h-screen md:grid-cols-2">
       <div className="hidden flex-col justify-between bg-forest p-10 text-white md:flex">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 text-sm font-bold">M</div>
-          <span className="font-display text-xl">{t('app.name')}</span>
+          <BrandLogo />
         </Link>
         <div className="max-w-sm">
           <motion.h1
@@ -30,8 +31,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <p className="text-xs text-white/50">© {new Date().getFullYear()} Manzil</p>
       </div>
 
-      <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">{children}</div>
+      <div className="flex items-center justify-center p-5 sm:p-8">
+        <AnimatedContent className="w-full max-w-sm">{children}</AnimatedContent>
       </div>
     </div>
   )

@@ -1,5 +1,10 @@
 import { Controller, Get, Inject, Patch, UseGuards } from '@nestjs/common';
 import { ValidatedBody } from '../common/decorators/validated-input.decorator.js';
+import {
+  ConsolePreferencesDto,
+  UpdateAvatarDto,
+  UpdatePasswordDto,
+} from './account.dto.js';
 import { UpdateProfileDto } from './update-profile.dto.js';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
@@ -11,7 +16,19 @@ import { UsersService } from './users.service.js';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('customer', 'property_owner', 'property_manager', 'receptionist', 'property_staff', 'verification_agent', 'support_agent', 'finance_agent', 'content_manager', 'admin', 'super_admin')
+@Roles(
+  'customer',
+  'property_owner',
+  'property_manager',
+  'receptionist',
+  'property_staff',
+  'verification_agent',
+  'support_agent',
+  'finance_agent',
+  'content_manager',
+  'admin',
+  'super_admin',
+)
 export class UsersController {
   constructor(@Inject(UsersService) private usersService: UsersService) {}
 
@@ -21,8 +38,33 @@ export class UsersController {
   }
 
   @Patch('me')
-  updateMe(@ValidatedBody(UpdateProfileDto) dto: UpdateProfileDto, @CurrentUser() user: AuthenticatedUser) {
+  updateMe(
+    @ValidatedBody(UpdateProfileDto) dto: UpdateProfileDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
     return this.usersService.updateMe(user.sub, dto);
+  }
+
+  @Patch('me/avatar')
+  avatar(
+    @ValidatedBody(UpdateAvatarDto) dto: UpdateAvatarDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usersService.updateAvatar(user.sub, dto.avatar);
+  }
+  @Patch('me/password')
+  password(
+    @ValidatedBody(UpdatePasswordDto) dto: UpdatePasswordDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usersService.updatePassword(user.sub, dto);
+  }
+  @Patch('me/preferences')
+  preferences(
+    @ValidatedBody(ConsolePreferencesDto) dto: ConsolePreferencesDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usersService.updatePreferences(user.sub, dto);
   }
 
   @Get()

@@ -1,3 +1,4 @@
+import { translateCatalog } from '@/utils/translateCatalog';
 import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -45,9 +46,9 @@ export default function BookingFlow() {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-          <p className="text-muted">Room not found.</p>
+          <p className="text-muted">{t('errors.roomNotFound')}</p>
           <Link to="/search" className="mt-2 inline-block text-sm text-forest hover:underline">
-            Back to search
+            {t('common.backSearch')}
           </Link>
         </div>
       </PublicLayout>
@@ -86,7 +87,7 @@ export default function BookingFlow() {
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <h1 className="text-2xl text-ink">{t('booking.title')}</h1>
         <p className="mt-1 text-sm text-muted">
-          {property.name} · {room.name}
+          {property.name} · {translateCatalog(room.name, t)}
         </p>
 
         <div className="mt-6 flex items-center gap-2">
@@ -111,7 +112,7 @@ export default function BookingFlow() {
         <div className="mt-8 rounded-xl border border-line p-6">
           {step === 0 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label={t('home.checkIn')} type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
                 <Field label={t('home.checkOut')} type="date" value={checkOut} min={checkIn} onChange={(e) => setCheckOut(e.target.value)} />
               </div>
@@ -136,7 +137,7 @@ export default function BookingFlow() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted">{property.name}</span>
-                <span className="font-medium text-ink">{room.name}</span>
+                <span className="font-medium text-ink">{translateCatalog(room.name, t)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted">{t('home.checkIn')} – {t('home.checkOut')}</span>
@@ -164,14 +165,14 @@ export default function BookingFlow() {
 
           {step === 2 && (
             <SelectField label={t('booking.paymentMethod')} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as typeof paymentMethod)}>
-              <option value="cash">Cash on arrival</option>
+              <option value="cash">{t('booking.cash')}</option>
             </SelectField>
           )}
 
           {saveError && <p role="alert" className="mt-4 text-danger">{saveError}</p>}
           <div className="mt-6 flex justify-between gap-2">
             <Button type="button" variant="secondary" onClick={() => (step === 0 ? navigate(-1) : setStep((s) => s - 1))}>
-              Back
+              {t('common.back')}
             </Button>
             {step < STEPS.length - 1 ? (
               <Button
@@ -179,7 +180,7 @@ export default function BookingFlow() {
                 onClick={() => setStep((s) => s + 1)}
                 disabled={step === 0 && (!guestName.trim() || !guestPhone.trim() || checkOut <= checkIn || guestsCount < 1 || guestsCount > room.capacity)}
               >
-                Next
+                {t('common.next')}
               </Button>
             ) : (
               <Button type="button" onClick={() => void handleConfirm()} disabled={isSaving}>

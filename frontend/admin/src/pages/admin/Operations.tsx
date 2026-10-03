@@ -1,3 +1,5 @@
+import PageHeader from "../../components/PageHeader";
+import { useAdminSession } from "../../session";
 import { useState } from "react";
 import { CheckCircle, Search, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -110,6 +112,7 @@ const AREA_LABEL: Record<Area, string> = {
 
 export default function Operations({ area }: { area: Area }) {
   const { t, i18n } = useTranslation();
+  const { preferences, formatDate } = useAdminSession();
   const [search, setSearch] = useState("");
   const [response, setResponse] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -120,11 +123,20 @@ export default function Operations({ area }: { area: Area }) {
     isLoading,
     isError,
     refetch,
-  } = api.useAdminOperationsQuery(area);
+  } = api.useAdminOperationsQuery(area, {
+    pollingInterval: preferences.refreshInterval * 1000,
+  });
   const [act, { isLoading: saving }] = api.useAdminOperationMutation();
 
   async function change(id: string, action: string) {
-    if (area === "reservations" && !confirm(`Confirm reservation ${action}?`))
+    if (
+      area === "reservations" &&
+      !confirm(
+        t("adminConsole.reservationConfirm", {
+          action: t(`adminConsole.actionLabels.${action}`),
+        }),
+      )
+    )
       return;
     setError("");
     setSuccess("");
@@ -160,19 +172,10 @@ export default function Operations({ area }: { area: Area }) {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-ink">
-          {t(AREA_LABEL[area])}
-        </h2>
-        <p className="mt-1 text-sm text-muted capitalize">
-          {area === "payouts" && "Review and process pending payout requests."}
-          {area === "reviews" &&
-            "Moderate property reviews submitted by customers."}
-          {area === "support" && "Track and resolve customer support tickets."}
-          {area === "reservations" &&
-            "View all reservations across the platform."}
-        </p>
-      </div>
+      <PageHeader
+        title={t(AREA_LABEL[area])}
+        description={t(`adminConsole.operationsDescription.${area}`)}
+      />
 
       {/* Search */}
       <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 max-w-md">
@@ -181,7 +184,7 @@ export default function Operations({ area }: { area: Area }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={t("admin.search")}
-          className="flex-1 bg-transparent text-sm outline-none text-ink placeholder:text-muted"
+          className="w-full min-w-0 flex-1 bg-transparent text-sm outline-none text-ink placeholder:text-muted"
         />
       </div>
 
@@ -189,7 +192,7 @@ export default function Operations({ area }: { area: Area }) {
       {(error || isError) && (
         <div
           role="alert"
-          className="flex items-center gap-2 rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger"
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger"
         >
           <XCircle className="h-4 w-4 shrink-0" />
           {error || t("admin.loadError")}
@@ -197,7 +200,7 @@ export default function Operations({ area }: { area: Area }) {
             onClick={() => void refetch()}
             className="ml-auto underline text-xs"
           >
-            Retry
+            {t("admin.retry")}
           </button>
         </div>
       )}
@@ -229,20 +232,22 @@ export default function Operations({ area }: { area: Area }) {
           {rows.map((row) => (
             <div
               key={row.id}
-              className="rounded-lg border border-line bg-surface p-5 space-y-3 hover:shadow-sm transition-shadow"
+              className="admin-panel space-y-4 hover:shadow-sm transition-shadow"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h4 className="font-semibold text-ink">
+                  <h4 className="break-words font-semibold text-ink">
                     {row.property?.name ?? row.subject ?? row.id}
                   </h4>
-                  <p className="text-xs text-muted mt-0.5">
+                  <p className="text-xs text-muted mt-2">
                     {row.customer?.name && <span>{row.customer.name} · </span>}
                     <span className="font-mono">{row.id.slice(0, 12)}…</span>
                   </p>
                 </div>
                 <Badge tone={STATUS_TONE[row.status] ?? "neutral"}>
-                  {row.status}
+                  {t(`adminConsole.states.${row.status}`, {
+                    defaultValue: row.status,
+                  })}
                 </Badge>
               </div>
 
@@ -257,23 +262,22 @@ export default function Operations({ area }: { area: Area }) {
               )}
               {row.checkIn && (
                 <p className="text-sm text-body">
-                  {new Date(row.checkIn).toLocaleDateString(i18n.language)} →{" "}
-                  {new Date(row.checkOut!).toLocaleDateString(i18n.language)}
+                  {formatDate(row.checkIn)} → {formatDate(row.checkOut!)}
                 </p>
               )}
               {row.overallRating && (
                 <p className="text-sm text-body">
-                  Rating: {row.overallRating} / 5
+                  {t("adminConsole.rating")}: {row.overallRating} / 5
                 </p>
               )}
               {(row.body || row.comment) && (
-                <p className="whitespace-pre-wrap text-sm text-body border-s-2 border-line ps-3">
+                <p className="break-words whitespace-pre-wrap text-sm text-body border-s-2 border-line ps-3">
                   {row.body ?? row.comment}
                 </p>
               )}
               {row.response && (
                 <p className="text-xs text-muted italic">
-                  Response: {row.response}
+                  {t("admin.response")}: {row.response}
                 </p>
               )}
 
@@ -323,7 +327,7 @@ export default function Operations({ area }: { area: Area }) {
                             : "var(--color-sand)",
                       }}
                     >
-                      {action}
+                      {t(`adminConsole.actionLabels.${action}`)}
                     </Button>
                   ))}
                 </div>

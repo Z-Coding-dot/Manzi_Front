@@ -33,6 +33,7 @@ export class PropertiesController {
   ) {}
 
   @Get()
+  @Roles('property_owner', 'property_manager', 'receptionist', 'property_staff', 'admin', 'super_admin', 'verification_agent')
   findAll(@CurrentUser() user: AuthenticatedUser) {
     return this.propertiesService.findAll(user);
   }
@@ -88,7 +89,7 @@ export class PropertiesController {
 
   @Patch(':id/review')
   @UseGuards(RolesGuard)
-  @Roles('admin', 'super_admin')
+  @Roles('admin', 'super_admin', 'verification_agent')
   review(
     @Param('id', ParseUUIDPipe) id: string,
     @ValidatedBody(ReviewPropertyDto) dto: ReviewPropertyDto,

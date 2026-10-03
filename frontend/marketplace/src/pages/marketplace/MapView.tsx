@@ -1,94 +1,34 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-
-import { PublicLayout } from '@/components/layout/PublicLayout'
-import { StarRating } from '@/components/ui/StarRating'
-import { useGetPublishedPropertiesQuery } from '@/services/marketplaceApi'
-import { cn } from '@/utils/cn'
-import { formatCurrency } from '@/utils/formatCurrency'
-import { DEFAULT_PROPERTY_PLACEHOLDER } from '@/utils/placeholderImage'
-
-// Kabul bounding box, roughly — used only to place mock pins proportionally.
-const BOUNDS = { latMin: 34.505, latMax: 34.555, lngMin: 69.12, lngMax: 69.2 }
-
-function toPercent(lat: number, lng: number) {
-  const x = ((lng - BOUNDS.lngMin) / (BOUNDS.lngMax - BOUNDS.lngMin)) * 100
-  const y = 100 - ((lat - BOUNDS.latMin) / (BOUNDS.latMax - BOUNDS.latMin)) * 100
-  return { x: Math.min(96, Math.max(4, x)), y: Math.min(96, Math.max(4, y)) }
-}
+import { useMemo, useState } from 'react';
+import { MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { PublicLayout } from '@/components/layout/PublicLayout';
+import { PropertyMap } from '@/components/ui/PropertyMap';
+import { Button } from '@/components/ui/Button';
+import { useGetPublishedPropertiesQuery } from '@/services/marketplaceApi';
+import { formatCurrency } from '@/utils/formatCurrency';
+import { DEFAULT_PROPERTY_PLACEHOLDER } from '@/utils/placeholderImage';
 
 export default function MapView() {
-  const { data: publishedProperties = [] } = useGetPublishedPropertiesQuery()
-  const { t, i18n } = useTranslation()
-  const [activeId, setActiveId] = useState<string | null>(null)
-
-  return (
-    <PublicLayout>
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <h1 className="text-2xl text-ink">{t('search.title')}</h1>
-        <p className="mt-1 text-sm text-muted">
-          Approximate positions shown for orientation — this is a lightweight placeholder, not a real interactive
-          map (that needs a maps API integration).
-        </p>
-
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.2fr]">
-          {/* List */}
-          <div className="scroll-thin max-h-[560px] space-y-3 overflow-y-auto pe-1">
-            {publishedProperties.map((p) => (
-              <div
-                key={p.id}
-                onMouseEnter={() => setActiveId(p.id)}
-                className={cn(
-                  'flex gap-3 rounded-xl border p-3 transition-colors',
-                  activeId === p.id ? 'border-forest bg-forest-soft/40' : 'border-line',
-                )}
-              >
-                <img
-                  src={p.images?.[0] || DEFAULT_PROPERTY_PLACEHOLDER}
-                  alt={p.name}
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
-                  }}
-                  className="h-16 w-20 shrink-0 rounded-lg object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <Link to={`/property/${p.slug}`} className="truncate font-medium text-ink hover:underline">
-                    {p.name}
-                  </Link>
-                  <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                    <StarRating rating={p.rating} size={12} />
-                    <span>{p.area}</span>
-                  </div>
-                  <p className="tabular mt-1 text-sm font-medium text-ink">{formatCurrency(p.fromPrice, p.currency, i18n.language)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pseudo-map */}
-          <div className="relative min-h-[400px] overflow-hidden rounded-xl border border-line bg-[linear-gradient(0deg,transparent_24%,var(--color-line)_25%,var(--color-line)_26%,transparent_27%,transparent_74%,var(--color-line)_75%,var(--color-line)_76%,transparent_77%,transparent),linear-gradient(90deg,transparent_24%,var(--color-line)_25%,var(--color-line)_26%,transparent_27%,transparent_74%,var(--color-line)_75%,var(--color-line)_76%,transparent_77%,transparent)] bg-[length:24px_24px] bg-paper">
-            {publishedProperties.map((p) => {
-              const { x, y } = toPercent(p.latitude, p.longitude)
-              const active = activeId === p.id
-              return (
-                <button
-                  key={p.id}
-                  onMouseEnter={() => setActiveId(p.id)}
-                  style={{ left: `${x}%`, top: `${y}%` }}
-                  className={cn(
-                    'absolute -translate-x-1/2 -translate-y-full rounded-full border px-2 py-1 text-xs font-medium shadow-sm transition-transform',
-                    active ? 'z-10 scale-110 border-forest bg-forest text-white' : 'border-line bg-white text-ink',
-                  )}
-                >
-                  {formatCurrency(p.fromPrice, p.currency, i18n.language)}
-                </button>
-              )
-            })}
-          </div>
-        </div>
+  const { data, isLoading, isError, refetch } = useGetPublishedPropertiesQuery();
+  const properties = useMemo(() => data ?? [], [data]);
+  const { t, i18n } = useTranslation();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  return <PublicLayout><section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <p className="text-xs font-semibold tracking-widest text-forest">{t('home.heroEyebrow')}</p>
+    <h1 className="font-display mt-3 text-3xl text-ink sm:text-4xl">{t('map.title')}</h1>
+    <p className="mt-3 max-w-2xl text-sm leading-7 text-body">{t('map.subtitle')}</p>
+    <div className="mt-7 grid gap-5 lg:grid-cols-[360px_1fr]">
+      <div className="order-2 max-h-[560px] space-y-3 overflow-y-auto lg:order-1">
+        {isLoading ? <p role="status" className="p-5">{t('common.loading')}</p> : isError ? <div role="alert" className="rounded-xl border border-line p-5"><p>{t('map.loadError')}</p><Button className="mt-4" onClick={() => void refetch()}>{t('common.retry')}</Button></div> : !properties.length ? <p className="rounded-xl bg-paper p-5">{t('common.noResults')}</p> : properties.map((property) => <article key={property.id} className={`rounded-xl border p-3 transition-colors ${activeId === property.id ? 'border-forest bg-forest-soft' : 'border-line bg-white'}`}>
+          <button onClick={() => setActiveId(property.id)} className="flex w-full items-start gap-3 text-start" aria-label={t('map.showProperty', { name: property.name })} aria-pressed={activeId === property.id}>
+            <img src={property.images[0] || DEFAULT_PROPERTY_PLACEHOLDER} alt="" className="h-20 w-24 shrink-0 rounded-lg object-cover" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER; }} />
+            <div className="min-w-0"><h2 className="text-sm font-semibold">{property.name}</h2><p className="mt-1 flex items-center gap-1 text-xs text-body"><MapPin className="h-3 w-3 shrink-0" />{property.area}</p><p className="mt-2 text-sm font-semibold text-forest">{formatCurrency(property.fromPrice, property.currency, i18n.language)}</p></div>
+          </button>
+          <Link to={`/property/${property.slug}`} className="mt-3 block rounded-lg bg-paper px-3 py-2 text-center text-xs font-medium text-forest hover:bg-forest-soft">{t('common.viewDetails')}</Link>
+        </article>)}
       </div>
-    </PublicLayout>
-  )
+      <div className="order-1 min-w-0 lg:order-2"><PropertyMap properties={properties} activeId={activeId} onSelect={setActiveId} /></div>
+    </div>
+  </section></PublicLayout>;
 }

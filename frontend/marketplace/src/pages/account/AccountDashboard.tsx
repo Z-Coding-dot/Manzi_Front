@@ -1,3 +1,4 @@
+import { translateCatalog } from '@/utils/translateCatalog';
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -40,12 +41,12 @@ export default function AccountDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-medium text-ink">{upcoming.property.name}</p>
-                  <p className="text-sm text-muted">{upcoming.room?.roomType}</p>
+                  <p className="text-sm text-muted">{upcoming.room ? translateCatalog(upcoming.room.roomType, t) : ''}</p>
                   <p className="tabular mt-1 text-sm text-body">
                     {formatDate(upcoming.checkIn, i18n.language)} → {formatDate(upcoming.checkOut, i18n.language)}
                   </p>
                 </div>
-                <Badge tone="success">{upcoming.status}</Badge>
+                <Badge tone="success">{t(`status.${upcoming.status}`, { defaultValue: upcoming.status })}</Badge>
               </div>
             </div>
           )}

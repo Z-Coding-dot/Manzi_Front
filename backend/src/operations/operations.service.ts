@@ -82,7 +82,7 @@ export class OperationsService {
       await this.audit(tx, user.sub, 'Payment', payment.id, 'cash_received', { amount: dto.amount, currency: payment.currency }); return payment;
     });
   }
-  payouts(user: AuthenticatedUser) { return this.prisma.payout.findMany({ where: admin(user) ? {} : { property: { ownerId: user.sub } }, include: { property: { select: { name: true } } }, orderBy: { createdAt: 'desc' }, take: 100 }); }
+  payouts(user: AuthenticatedUser) { return this.prisma.payout.findMany({ where: (admin(user) || user.role === 'finance_agent') ? {} : { property: { ownerId: user.sub } }, include: { property: { select: { name: true } } }, orderBy: { createdAt: 'desc' }, take: 100 }); }
   async createPayout(dto: PayoutDto, user: AuthenticatedUser) {
     return this.prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM properties WHERE id = ${dto.propertyId} FOR UPDATE`;
@@ -102,7 +102,7 @@ export class OperationsService {
       await this.audit(tx, user.sub, 'Payout', id, approve ? 'approve' : 'reject'); return tx.payout.findUniqueOrThrow({ where: { id } });
     });
   }
-  tickets(user: AuthenticatedUser) { return this.prisma.supportTicket.findMany({ where: admin(user) ? {} : { userId: user.sub }, orderBy: { createdAt: 'desc' }, take: 100 }); }
+  tickets(user: AuthenticatedUser) { return this.prisma.supportTicket.findMany({ where: (admin(user) || user.role === 'support_agent') ? {} : { userId: user.sub }, orderBy: { createdAt: 'desc' }, take: 100 }); }
   async createTicket(dto: TicketDto, user: AuthenticatedUser) {
     if (dto.reservationId) await this.reservations.one(dto.reservationId, user);
     return this.prisma.$transaction(async tx => { const ticket = await tx.supportTicket.create({ data: { ...dto, userId: user.sub } }); await this.audit(tx, user.sub, 'SupportTicket', ticket.id, 'create'); return ticket; });

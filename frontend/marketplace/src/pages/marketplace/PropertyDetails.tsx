@@ -1,3 +1,4 @@
+import { translateCatalog } from '@/utils/translateCatalog';
 import { Check, MapPin, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
@@ -10,7 +11,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import { useGetPublishedPropertyQuery } from "@/services/marketplaceApi";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/formatDate";
-import { DEFAULT_PROPERTY_PLACEHOLDER } from "@/utils/placeholderImage";
+import { PropertyGallery } from "@/components/ui/PropertyGallery";
 
 export default function PropertyDetails() {
   const { slug } = useParams<{ slug: string }>();
@@ -24,7 +25,7 @@ export default function PropertyDetails() {
     return (
       <PublicLayout>
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          Loading property...
+          {t("common.loading")}
         </div>
       </PublicLayout>
     );
@@ -35,13 +36,13 @@ export default function PropertyDetails() {
       <PublicLayout>
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <EmptyState
-            title="Property not found"
+            title={t("errors.propertyNotFound")}
             action={
               <Link
                 to="/search"
                 className="text-sm text-forest hover:underline"
               >
-                Back to search
+                {t("common.backSearch")}
               </Link>
             }
           />
@@ -55,35 +56,12 @@ export default function PropertyDetails() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        {/* Gallery */}
-        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-xl sm:h-96 sm:grid-cols-4 sm:grid-rows-2 bg-paper">
-          <img
-            src={property.images?.[0] || DEFAULT_PROPERTY_PLACEHOLDER}
-            alt={property.name}
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
-            }}
-            className={`h-56 w-full object-cover sm:h-full ${property.images?.length > 1 ? "sm:col-span-2 sm:row-span-2" : "sm:col-span-4 sm:row-span-2"}`}
-          />
-          {property.images?.slice(1, 3).map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = DEFAULT_PROPERTY_PLACEHOLDER;
-              }}
-              className="hidden h-full w-full object-cover sm:block"
-            />
-          ))}
-        </div>
+        <PropertyGallery key={property.id} images={property.images ?? []} name={property.name} />
 
         {/* Header */}
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl text-ink sm:text-3xl">
                 {property.name}
               </h1>
@@ -94,7 +72,7 @@ export default function PropertyDetails() {
                 </Badge>
               )}
             </div>
-            <div className="mt-2 flex items-center gap-3 text-sm text-muted">
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
               <StarRating rating={property.rating} />
               <span>
                 ({property.reviewsCount} {t("property.reviews").toLowerCase()})
@@ -121,8 +99,8 @@ export default function PropertyDetails() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">
+        <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-8">
             {/* About */}
             <section>
               <h2 className="text-lg">{t("property.aboutThisPlace")}</h2>
@@ -137,11 +115,11 @@ export default function PropertyDetails() {
               <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                 {property.amenities.map((a) => (
                   <div
-                    key={a}
+                    key={translateCatalog(a, t)}
                     className="flex items-center gap-2 text-sm text-body"
                   >
                     <Check className="h-4 w-4 text-forest" />
-                    {a}
+                    {translateCatalog(a, t)}
                   </div>
                 ))}
               </div>
@@ -154,25 +132,26 @@ export default function PropertyDetails() {
                 {property.rooms.map((room) => (
                   <div
                     key={room.id}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-line p-4"
+                    data-motion-card
+                    className="grid min-w-0 grid-cols-1 gap-4 rounded-2xl border border-line bg-white p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5"
                   >
-                    <div>
-                      <p className="font-medium text-ink">{room.name}</p>
+                    <div className="min-w-0 break-words">
+                      <p className="text-base font-semibold text-ink">{translateCatalog(room.name, t)}</p>
                       <p className="text-sm text-muted">
-                        {t("property.capacity", { count: room.capacity })} ·{" "}
-                        {room.amenities.join(", ")}
+                        {t("property.capacity", { count: room.capacity })}
+                        {room.amenities.length > 0 && <> · {room.amenities.map((amenity) => translateCatalog(amenity, t)).join(i18n.dir() === "rtl" ? "، " : ", ")}</>}
                       </p>
                     </div>
-                    <div className="text-end">
-                      <p className="tabular font-semibold text-ink">
+                    <div className="grid min-w-0 gap-3 border-t border-line pt-4 sm:border-0 sm:pt-0 sm:text-end">
+                      <p className="tabular text-lg font-semibold text-ink">
                         {formatCurrency(
                           room.price,
                           property.currency,
                           i18n.language,
                         )}
                       </p>
-                      <Link to={`/book/${property.slug}/${room.id}`}>
-                        <Button size="sm" className="mt-1.5">
+                      <Link className="block w-full sm:w-auto" to={`/book/${property.slug}/${room.id}`}>
+                        <Button className="w-full whitespace-normal sm:w-auto">
                           {t("property.reserveNow")}
                         </Button>
                       </Link>
@@ -186,7 +165,7 @@ export default function PropertyDetails() {
             <section>
               <h2 className="text-lg">{t("property.policies")}</h2>
               <p className="mt-2 text-sm text-body">{property.policies}</p>
-              <div className="mt-3 flex gap-6 text-sm text-muted">
+              <div className="mt-3 flex flex-wrap gap-6 text-sm text-muted">
                 <span>
                   {t("property.checkInTime")}: {property.checkInTime}
                 </span>
@@ -233,17 +212,17 @@ export default function PropertyDetails() {
               <p className="text-sm font-medium text-ink">
                 {t("property.contactHost")}
               </p>
-              <p className="mt-2 flex items-center gap-2 text-sm text-body">
+              {property.contactPhone && <a href={`tel:${property.contactPhone}`} className="mt-2 flex items-center gap-2 text-sm text-body">
                 <Phone className="h-4 w-4 text-muted" />
-                +93 70 111 2233
-              </p>
+                <span dir="ltr">{property.contactPhone}</span>
+              </a>}
             </div>
             <div className="rounded-lg bg-paper p-3 text-xs text-muted">
               {t("property.location")}: {property.address}
             </div>
-            <Link to={`/book/${property.slug}/${property.rooms[0]?.id}`}>
+            {property.rooms[0] && <Link to={`/book/${property.slug}/${property.rooms[0].id}`}>
               <Button className="w-full">{t("property.reserveNow")}</Button>
-            </Link>
+            </Link>}
           </aside>
         </div>
       </div>

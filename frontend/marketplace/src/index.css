@@ -27,10 +27,10 @@
   --color-forest-soft: #e5f0ec;
 
   /* Neutrals */
-  --color-title: #ffff;
+  --color-title: #12211c;
   --color-ink: #12211c;
   --color-body: #47554d;
-  --color-muted: #7c8880;
+  --color-muted: #647168;
   --color-paper: #f6f7f5;
   --color-surface: #ffffff;
   --color-line: #e2e5e0;
@@ -63,6 +63,7 @@ html[lang='fa-AF'],
 html[lang='ps-AF'] {
   font-family: var(--font-dari);
 }
+html[dir='rtl'] body { font-family: var(--font-dari); }
 
 body {
   margin: 0;
@@ -74,6 +75,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+@layer base {
 h1 {
   color: var(--color-title);
   font-weight: 800;
@@ -87,6 +89,7 @@ h2, h3, h4 {
   letter-spacing: -0.01em;
   margin: 0;
 }
+}
 
 .font-display {
   font-family: var(--font-display);
@@ -99,10 +102,9 @@ html[lang='ps-AF'] .font-display {
   font-family: var(--font-dari);
 }
 
-p { margin: 0; }
-
-* {
-  border-color: var(--color-line);
+@layer base {
+  p { margin: 0; }
+  * { border-color: var(--color-line); }
 }
 
 :focus-visible {
@@ -125,3 +127,20 @@ p { margin: 0; }
 
 .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
 .scroll-thin::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 4px; }
+
+/* Price pins remain legible over both light and dark map tiles. */
+.map-price { display: flex; align-items: center; justify-content: center; min-height: 36px; padding: 5px 10px; border: 1px solid #0d5a48; border-radius: 20px; background: white; color: #083d31; font-family: var(--font-sans); font-weight: 600; white-space: nowrap; box-shadow: 0 3px 12px #12211c26; }
+.is-active .map-price { background: #0d5a48; color: white; }
+.map-property-link { display: inline-block; margin-top: 8px; color: #0d5a48 !important; }
+html[dir='rtl'] .map-price { font-family: var(--font-dari); }
+input, select, textarea { min-width: 0; }
+
+.gallery-dialog {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+}
+@media (min-width: 640px) {
+  .gallery-dialog { padding: 1.5rem; }
+}
